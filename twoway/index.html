@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JT1078 Two-Way Audio</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .audio-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .device-section {
+            border-color: #9C27B0;
+            background: #faf8ff;
+        }
+        .receive-section {
+            border-color: #4CAF50;
+            background: #f8fff8;
+        }
+        .transmit-section {
+            border-color: #2196F3;
+            background: #f8fbff;
+        }
+        button { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            margin: 10px; 
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .device-btn {
+            background: #9C27B0;
+            color: white;
+        }
+        .device-btn:hover {
+            background: #7B1FA2;
+        }
+        .receive-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .receive-btn:hover {
+            background: #45a049;
+        }
+        .transmit-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .transmit-btn:hover {
+            background: #1976D2;
+        }
+        .stop-btn {
+            background: #f44336;
+            color: white;
+        }
+        .stop-btn:hover {
+            background: #da190b;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .ptt-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: bold;
+            background: #f44336;
+            color: white;
+            border: 4px solid #d32f2f;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 20px auto;
+            display: block;
+        }
+        .ptt-button:active {
+            background: #d32f2f;
+            transform: scale(0.95);
+        }
+        .ptt-button:disabled {
+            background: #cccccc;
+            border-color: #999;
+            cursor: not-allowed;
+        }
+        .volume-meter {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .volume-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #FFC107, #f44336);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .device-list {
+            display: grid;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .device-item.selected {
+            border-color: #9C27B0;
+            background: #f3e5f5;
+        }
+        .device-item.in-call {
+            border-color: #4CAF50;
+            background: #e8f5e8;
+        }
+        .device-info {
+            flex: 1;
+            text-align: left;
+        }
+        .device-phone {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .device-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .device-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-online {
+            background: #4CAF50;
+            color: white;
+        }
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+        .status-in-call {
+            background: #FF9800;
+            color: white;
+        }
+        .call-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .api-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .api-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .api-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ JT1078 Two-Way Audio Communication</h1>
+        
+        <!-- Device Selection Section -->
+        <div class="audio-section device-section">
+            <h3>📱 Device Management</h3>
+            <div class="status" id="deviceStatus">Loading devices...</div>
+            
+            <div class="call-controls">
+                <button id="refreshDevicesButton" class="device-btn">🔄 Refresh Devices</button>
+                <button id="startCallButton" class="device-btn" disabled>📞 Start Call</button>
+                <button id="stopCallButton" class="stop-btn" disabled>📞 Stop Call</button>
+            </div>
+            
+            <div class="api-status hidden" id="apiStatus"></div>
+            <div class="device-list" id="deviceList"></div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Selected Device</div>
+                    <div class="metric-value" id="selectedDevice">None</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Call Status</div>
+                    <div class="metric-value" id="callStatus">Inactive</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Call ID</div>
+                    <div class="metric-value" id="callId">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audio Reception Section -->
+        <div class="audio-section receive-section">
+            <h3>📻 Audio Reception (From Device)</h3>
+            <div class="status" id="receiveStatus">Ready to receive audio</div>
+            
+            <button id="playButton" class="receive-btn">🎵 Start Receiving</button>
+            <button id="stopReceiveButton" class="stop-btn" disabled>⏹️ Stop</button>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Buffer Level</div>
+                    <div class="metric-value" id="bufferLevel">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Latency (ms)</div>
+                    <div class="metric-value" id="latency">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Frames Received</div>
+                    <div class="metric-value" id="framesReceived">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Transmission Section -->
+        <div class="audio-section transmit-section">
+            <h3>🎤 Audio Transmission (To Device)</h3>
+            <div class="status" id="transmitStatus">Select device and start call first</div>
+            
+            <button id="setupMicButton" class="transmit-btn" disabled>🎤 Setup Microphone</button>
+            <button id="stopTransmitButton" class="stop-btn" disabled>⏹️ Stop Transmission</button>
+            
+            <!-- PTT Button -->
+            <button id="pttButton" class="ptt-button" disabled>
+                PUSH<br>TO<br>TALK
+            </button>
+            
+            <!-- Volume Meter -->
+            <div class="volume-meter">
+                <div class="volume-bar" id="volumeBar"></div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Mic Level</div>
+                    <div class="metric-value" id="micLevel">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Frames Sent</div>
+                    <div class="metric-value" id="framesSent">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Connection</div>
+                    <div class="metric-value" id="tcpStatus">Disconnected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TwoWayAudioSystem {
+            constructor() {
+                // API Configuration - Use relative paths to hit your backend
+                this.apiBaseUrl = '/api'; // This will hit your Go backend
+                
+                // Device management
+                this.devices = [];
+                this.selectedDevice = null;
+                this.currentCall = null;
+                
+                // Reception system
+                this.audioContext = null;
+                this.receiveWs = null;
+                this.audioBuffer = [];
+                this.targetBufferSize = 7;
+                this.maxBufferSize = 11;
+                this.minBufferSize = 4;
+                
+                // Transmission system
+                this.mediaStream = null;
+                this.transmitWs = null;
+                this.audioProcessor = null;
+                this.isTransmitting = false;
+                this.isPTTActive = false;
+                this.sequenceNumber = 0;
+                
+                // Audio accumulation for 320-byte frames
+                this.audioAccumulator = new Uint8Array(320);
+                this.accumulatorIndex = 0;
+                
+                // G.711 A-law encoding table
+                this.pcmToAlawTable = this.buildPcmToAlawTable();
+                
+                // State tracking
+                this.isReceiving = false;
+                this.nextPlayTime = 0;
+                this.frameCount = 0;
+                this.activeSources = new Set();
+                this.cleanupInterval = null;
+                
+                // Metrics
+                this.metrics = {
+                    framesReceived: 0,
+                    framesSent: 0,
+                    totalLatency: 0,
+                    latencyCount: 0
+                };
+                
+                this.setupEventListeners();
+                this.startMetricsUpdater();
+                this.loadDevices();
+            }
+            
+            // === API INTEGRATION ===
+            async apiRequest(endpoint, method = 'GET', data = null) {
+                try {
+                    const options = {
+                        method: method,
+                        headers: {
+                            'accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                    
+                    if (data) {
+                        options.body = JSON.stringify(data);
+                    }
+                    
+                    const response = await fetch(`${this.apiBaseUrl}${endpoint}`, options);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Request failed:', error);
+                    this.showApiStatus(`API Error: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+            
+            async loadDevices() {
+                try {
+                    this.updateDeviceStatus('Loading devices...', '#ff9800');
+                    document.getElementById('refreshDevicesButton').disabled = true;
+                    
+                    const devices = await this.apiRequest('/devices');
+                    this.devices = devices;
+                    this.renderDeviceList();
+                    
+                    this.updateDeviceStatus(`Found ${devices.length} device(s)`, '#4CAF50');
+                    this.showApiStatus(`Loaded ${devices.length} device(s) successfully`, 'success');
+                } catch (error) {
+                    this.updateDeviceStatus('Failed to load devices', '#f44336');
+                    this.showApiStatus(`Failed to load devices: ${error.message}`, 'error');
+                } finally {
+                    document.getElementById('refreshDevicesButton').disabled = false;
+                }
+            }
+            
+            async startCall() {
+                if (!this.selectedDevice) {
+                    this.showApiStatus('Please select a device first', 'error');
+                    return;
+                }
+                
+                try {
+                    document.getElementById('startCallButton').disabled = true;
+                    this.showApiStatus('Starting call...', 'success');
+                    
+                    // First stop any existing call
+                    await this.controlCall(4, this.selectedDevice.phone_number);
+                    
+                    // Wait a moment then start new call
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const callData = await this.apiRequest('/call/start', 'POST', {
+                        caller_id: 'WebInterface',
+                        device_phone: this.selectedDevice.phone_number
+                    });
+                    
+                    this.currentCall = callData;
+                    document.getElementById('callId').textContent = callData.call_id;
+                    document.getElementById('callStatus').textContent = 'Active';
+                    document.getElementById('stopCallButton').disabled = false;
+                    document.getElementById('setupMicButton').disabled = false;
+                    
+                    this.updateTransmitStatus('Call active - Setup microphone to transmit', '#4CAF50');
+                    this.showApiStatus(`Call started successfully (ID: ${callData.call_id})`, 'success');
+                    
+                    // Refresh device list to show call status
+                    await this.loadDevices();
+                    
+                } catch (error) {
+                    document.getElementById('startCallButton').disabled = false;
+                    this.showApiStatus(`Failed to start call: ${error.message}`, 'error');
+                }
+            }
+            
+            async stopCall() {
+                if (!this.selectedDevice) return;
+                
+                try {
+                    document.getElementById('stopCallButton').disabled = true;
+                    this.showApiStatus('Stopping call...', 'success');
+                    
+                    // Stop transmission if active
+                    if (this.isPTTActive || this.mediaStream) {
+                        this.stopTransmitting();
+                    }
+                    
+                    await this.controlCall(4, this.selectedDevice.phone_number);
+                    
+                    this.currentCall = null;
+                    document.getElementById('callId').textContent = '-';
+                    document.getElementById('callStatus').textContent = 'Inactive';
+                    document.getElementById('startCallButton').disabled = false;
+                    document.getElementById('setupMicButton').disabled = true;
+                    
+                    this.updateTransmitStatus('Select device and start call first', '#666');
+                    this.showApiStatus('Call stopped successfully', 'success');
+                    
+                    // Refresh device list
+                    await this.loadDevices();
+                    
+                } catch (error) {
+                    document.getElementById('stopCallButton').disabled = false;
+                    this.showApiStatus(`Failed to stop call: ${error.message}`, 'error');
+                }
+            }
+            
+            async controlCall(command, devicePhone) {
+                return await this.apiRequest('/call/control', 'POST', {
+                    command: command,
+                    device_phone: devicePhone
+                });
+            }
+            
+            // === UI MANAGEMENT ===
+            renderDeviceList() {
+                const deviceList = document.getElementById('deviceList');
+                deviceList.innerHTML = '';
+                
+                if (this.devices.length === 0) {
+                    deviceList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No devices found</div>';
+                    return;
+                }
+                
+                this.devices.forEach(device => {
+                    const deviceItem = document.createElement('div');
+                    deviceItem.className = 'device-item';
+                    
+                    if (this.selectedDevice && this.selectedDevice.phone_number === device.phone_number) {
+                        deviceItem.classList.add('selected');
+                    }
+                    
+                    if (device.in_call) {
+                        deviceItem.classList.add('in-call');
+                    }
+                    
+                    const lastSeen = new Date(device.last_seen).toLocaleString();
+                    const statusClass = device.authenticated ? 'status-online' : 'status-offline';
+                    const statusText = device.in_call ? 'IN CALL' : (device.authenticated ? 'ONLINE' : 'OFFLINE');
+                    
+                    deviceItem.innerHTML = `
+                        <div class="device-info">
+                            <div class="device-phone">${device.phone_number}</div>
+                            <div class="device-details">
+                                Last seen: ${lastSeen}<br>
+                                Remote: ${device.remote_addr}<br>
+                                Auth Code: ${device.auth_code}
+                            </div>
+                        </div>
+                        <div class="device-status ${device.in_call ? 'status-in-call' : statusClass}">
+                            ${statusText}
+                        </div>
+                    `;
+                    
+                    deviceItem.addEventListener('click', () => this.selectDevice(device));
+                    deviceList.appendChild(deviceItem);
+                });
+            }
+            
+            selectDevice(device) {
+                this.selectedDevice = device;
+                document.getElementById('selectedDevice').textContent = device.phone_number;
+                document.getElementById('startCallButton').disabled = false;
+                
+                // Convert phone number to BCD format for frame creation
+                this.deviceBCD = this.phoneNumberToBCD(device.phone_number);
+                
+                this.renderDeviceList();
+                this.showApiStatus(`Selected device: ${device.phone_number}`, 'success');
+            }
+            
+            phoneNumberToBCD(phoneNumber) {
+                // Remove any non-digit characters and take last 12 digits
+                const digits = phoneNumber.replace(/\D/g, '').slice(-12);
+                const bcd = new Uint8Array(6);
+                
+                // Pad with zeros if needed
+                const paddedDigits = digits.padStart(12, '0');
+                
+                // Convert to BCD format
+                for (let i = 0; i < 6; i++) {
+                    const high = parseInt(paddedDigits[i * 2]) || 0;
+                    const low = parseInt(paddedDigits[i * 2 + 1]) || 0;
+                    bcd[i] = (high << 4) | low;
+                }
+                
+                return bcd;
+            }
+            
+            updateDeviceStatus(message, color = '#333') {
+                const status = document.getElementById('deviceStatus');
+                status.textContent = message;
+                status.style.borderLeftColor = color;
+            }
+            
+            showApiStatus(message, type) {
+                const statusDiv = document.getElementById('apiStatus');
+                statusDiv.textContent = message;
+                statusDiv.className = `api-status api-${type}`;
+                statusDiv.classList.remove('hidden');
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
+            }
+            
+            setupEventListeners() {
+                // Device management controls
+                document.getElementById('refreshDevicesButton').addEventListener('click', () => this.loadDevices());
+                document.getElementById('startCallButton').addEventListener('click', () => this.startCall());
+                document.getElementById('stopCallButton').addEventListener('click', () => this.stopCall());
+                
+                // Reception controls
+                document.getElementById('playButton').addEventListener('click', () => this.startReceiving());
+                document.getElementById('stopReceiveButton').addEventListener('click', () => this.stopReceiving());
+                
+                // Transmission controls
+                document.getElementById('setupMicButton').addEventListener('click', () => this.setupMicrophone());
+                document.getElementById('stopTransmitButton').addEventListener('click', () => this.stopTransmitting());
+                
+                // PTT control
+                const pttButton = document.getElementById('pttButton');
+                pttButton.addEventListener('mousedown', () => this.startPTT());
+                pttButton.addEventListener('mouseup', () => this.stopPTT());
+                pttButton.addEventListener('mouseleave', () => this.stopPTT());
+                
+                // Touch support for mobile
+                pttButton.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.startPTT();
+                });
+                pttButton.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.stopPTT();
+                });
+                
+                // Keyboard PTT (spacebar)
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' && !e.repeat && !this.isPTTActive) {
+                        e.preventDefault();
+                        this.startPTT();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.stopPTT();
+                    }
+                });
+                
+                window.addEventListener('beforeunload', () => this.cleanup());
+            }
+            
+            // === AUDIO RECEPTION ===
+            async startReceiving() {
+                try {
+                    this.updateReceiveStatus('Initializing audio context...', '#ff9800');
+                    
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        sampleRate: 8000,
+                        latencyHint: 'interactive'
+                    });
+                    
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    this.connectReceiveWebSocket();
+                    this.startMemoryManagement();
+                    
+                    document.getElementById('playButton').disabled = true;
+                    document.getElementById('stopReceiveButton').disabled = false;
+                    this.isReceiving = true;
+                    
+                } catch (error) {
+                    this.updateReceiveStatus(`Error: ${error.message}`, '#f44336');
+                }
+            }
+            
+            connectReceiveWebSocket() {
+                this.updateReceiveStatus('Connecting to audio stream...', '#ff9800');
+                
+                this.receiveWs = new WebSocket('ws://localhost:8081/ws');
+                this.receiveWs.binaryType = 'arraybuffer';
+                
+                this.receiveWs.onopen = () => {
+                    this.updateReceiveStatus('Receiving audio from device', '#4CAF50');
+                };
+                
+                this.receiveWs.onmessage = (event) => {
+                    this.handleAudioFrame(event.data);
+                };
+                
+                this.receiveWs.onclose = () => {
+                    this.updateReceiveStatus('Reception connection closed', '#f44336');
+                };
+                
+                this.receiveWs.onerror = () => {
+                    this.updateReceiveStatus('Reception connection error', '#f44336');
+                };
+            }
+            
+            handleAudioFrame(arrayBuffer) {
+                if (!arrayBuffer || arrayBuffer.byteLength < 8) return;
+                
+                const frameTime = performance.now();
+                const data = new Uint8Array(arrayBuffer);
+                
+                const durationView = new DataView(arrayBuffer, 0, 4);
+                let duration = durationView.getFloat32(0, true);
+                
+                const sampleCount = (data.length - 4) / 2;
+                if (sampleCount <= 0) return;
+                
+                const samples = new Int16Array(arrayBuffer, 4, sampleCount);
+                duration = this.normalizeDuration(duration, samples.length);
+                
+                const audioFrame = {
+                    samples: new Float32Array(samples.length),
+                    duration: duration,
+                    timestamp: frameTime,
+                    id: this.frameCount++
+                };
+                
+                for (let i = 0; i < samples.length; i++) {
+                    audioFrame.samples[i] = this.applyAudioEnhancements(samples[i] / 32768.0, i, samples.length);
+                }
+                
+                this.manageBuffer(audioFrame);
+            }
+            
+            // === AUDIO TRANSMISSION ===
+            async setupMicrophone() {
+                if (!this.currentCall) {
+                    this.showApiStatus('Please start a call first', 'error');
+                    return;
+                }
+                
+                try {
+                    this.updateTransmitStatus('Requesting microphone access...', '#ff9800');
+                    
+                    this.mediaStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            sampleRate: 8000,
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    
+                    this.setupAudioProcessor();
+                    this.connectTransmitWebSocket();
+                    
+                    document.getElementById('setupMicButton').disabled = true;
+                    document.getElementById('stopTransmitButton').disabled = false;
+                    document.getElementById('pttButton').disabled = false;
+                    
+                    this.updateTransmitStatus('Microphone ready - Hold PTT to transmit', '#4CAF50');
+                    
+                } catch (error) {
+                    this.updateTransmitStatus(`Microphone error: ${error.message}`, '#f44336');
+                }
+            }
+            
+            async setupAudioProcessor() {
+                const audioContext = new AudioContext({ sampleRate: 8000 });
+                const source = audioContext.createMediaStreamSource(this.mediaStream);
+                
+                try {
+                    // Modern AudioWorklet approach
+                    const workletCode = `
+                        class AudioProcessor extends AudioWorkletProcessor {
+                            constructor() {
+                                super();
+                                this.isPTTActive = false;
+                                
+                                this.port.onmessage = (event) => {
+                                    if (event.data.type === 'setPTT') {
+                                        this.isPTTActive = event.data.value;
+                                    }
+                                };
+                            }
+                            
+                            process(inputs, outputs, parameters) {
+                                if (!this.isPTTActive || !inputs[0] || !inputs[0][0]) {
+                                    return true;
+                                }
+                                
+                                const input = inputs[0][0];
+                                
+                                // Calculate volume level
+                                let sum = 0;
+                                for (let i = 0; i < input.length; i++) {
+                                    sum += Math.abs(input[i]);
+                                }
+                                const volume = (sum / input.length) * 100;
+                                
+                                // Convert to 16-bit PCM
+                                const pcm16 = new Int16Array(input.length);
+                                for (let i = 0; i < input.length; i++) {
+                                    let sample = Math.max(-1, Math.min(1, input[i]));
+                                    pcm16[i] = sample < 0 ? sample * 32768 : sample * 32767;
+                                }
+                                
+                                // Send data back to main thread
+                                this.port.postMessage({
+                                    type: 'audioData',
+                                    pcm16: pcm16,
+                                    volume: volume
+                                });
+                                
+                                return true;
+                            }
+                        }
+                        
+                        registerProcessor('audio-processor', AudioProcessor);
+                    `;
+                    
+                    // Create blob URL for the worklet
+                    const blob = new Blob([workletCode], { type: 'application/javascript' });
+                    const workletUrl = URL.createObjectURL(blob);
+                    
+                    // Add the audio worklet module
+                    await audioContext.audioWorklet.addModule(workletUrl);
+                    
+                    // Create the worklet node
+                    this.audioProcessor = new AudioWorkletNode(audioContext, 'audio-processor');
+                    
+                    // Handle messages from the worklet
+                    this.audioProcessor.port.onmessage = (event) => {
+                        if (event.data.type === 'audioData') {
+                            this.updateVolumeLevel(event.data.volume);
+                            this.accumulateAudioData(event.data.pcm16);
+                        }
+                    };
+                    
+                    // Connect the audio graph
+                    source.connect(this.audioProcessor);
+                    this.audioProcessor.connect(audioContext.destination);
+                    
+                    // Clean up blob URL
+                    URL.revokeObjectURL(workletUrl);
+                    
+                } catch (error) {
+                    console.warn('AudioWorklet not supported, falling back to ScriptProcessor:', error);
+                    // Fallback to ScriptProcessor for older browsers
+                    this.setupScriptProcessor(audioContext, source);
+                }
+            }
+            
+            setupScriptProcessor(audioContext, source) {
+                // Fallback for older browsers
+                this.audioProcessor = audioContext.createScriptProcessor(1024, 1, 1);
+                
+                this.audioProcessor.onaudioprocess = (event) => {
+                    if (!this.isPTTActive) return;
+                    
+                    const inputBuffer = event.inputBuffer;
+                    const inputData = inputBuffer.getChannelData(0);
+                    
+                    // Calculate volume level for meter
+                    let sum = 0;
+                    for (let i = 0; i < inputData.length; i++) {
+                        sum += Math.abs(inputData[i]);
+                    }
+                    const volume = (sum / inputData.length) * 100;
+                    this.updateVolumeLevel(volume);
+                    
+                    // Convert to 16-bit PCM
+                    const pcm16 = new Int16Array(inputData.length);
+                    for (let i = 0; i < inputData.length; i++) {
+                        let sample = Math.max(-1, Math.min(1, inputData[i]));
+                        pcm16[i] = sample < 0 ? sample * 32768 : sample * 32767;
+                    }
+                    
+                    this.accumulateAudioData(pcm16);
+                };
+                
+                source.connect(this.audioProcessor);
+                this.audioProcessor.connect(audioContext.destination);
+            }
+            
+            // Accumulate audio data until we have exactly 320 bytes
+            accumulateAudioData(pcm16Array) {
+                // Encode to G.711 A-law
+                const alawData = this.encodeG711ALaw(pcm16Array);
+                
+                // Add to accumulator
+                for (let i = 0; i < alawData.length; i++) {
+                    if (this.accumulatorIndex < 320) {
+                        this.audioAccumulator[this.accumulatorIndex++] = alawData[i];
+                    }
+                    
+                    // When we have exactly 320 bytes, send the frame
+                    if (this.accumulatorIndex >= 320) {
+                        const frameData = new Uint8Array(320);
+                        frameData.set(this.audioAccumulator.subarray(0, 320));
+                        this.sendAudioFrame(frameData);
+                        this.accumulatorIndex = 0; // Reset for next frame
+                    }
+                }
+            }
+            
+            connectTransmitWebSocket() {
+                this.transmitWs = new WebSocket('ws://localhost:8081/transmit');
+                
+                this.transmitWs.onopen = () => {
+                    document.getElementById('tcpStatus').textContent = 'Connected';
+                };
+                
+                this.transmitWs.onclose = () => {
+                    document.getElementById('tcpStatus').textContent = 'Disconnected';
+                };
+                
+                this.transmitWs.onerror = () => {
+                    document.getElementById('tcpStatus').textContent = 'Error';
+                };
+            }
+            
+            startPTT() {
+                if (!this.mediaStream || this.isPTTActive || !this.currentCall) return;
+                
+                this.isPTTActive = true;
+                this.accumulatorIndex = 0; // Reset accumulator
+                document.getElementById('pttButton').style.background = '#d32f2f';
+                this.updateTransmitStatus('🔴 TRANSMITTING - Release to stop', '#d32f2f');
+                
+                // Notify the audio worklet
+                if (this.audioProcessor && this.audioProcessor.port) {
+                    this.audioProcessor.port.postMessage({
+                        type: 'setPTT',
+                        value: true
+                    });
+                }
+            }
+            
+            stopPTT() {
+                if (!this.isPTTActive) return;
+                
+                this.isPTTActive = false;
+                this.accumulatorIndex = 0; // Reset accumulator
+                document.getElementById('pttButton').style.background = '#f44336';
+                this.updateTransmitStatus('Microphone ready - Hold PTT to transmit', '#4CAF50');
+                this.updateVolumeLevel(0);
+                
+                // Notify the audio worklet
+                if (this.audioProcessor && this.audioProcessor.port) {
+                    this.audioProcessor.port.postMessage({
+                        type: 'setPTT',
+                        value: false
+                    });
+                }
+            }
+            
+            // === G.711 A-LAW ENCODING ===
+            buildPcmToAlawTable() {
+                const table = new Array(65536);
+                
+                for (let i = 0; i < 65536; i++) {
+                    let pcm = i - 32768; // Convert to signed 16-bit
+                    table[i] = this.linearToAlaw(pcm);
+                }
+                
+                return table;
+            }
+            
+            linearToAlaw(pcm) {
+                let sign = (pcm & 0x8000) >> 8;
+                if (sign !== 0) pcm = -pcm;
+                if (pcm > 32635) pcm = 32635;
+                
+                let exp = 7;
+                let expMask = 0x4000;
+                for (let i = 0; i < 7; i++) {
+                    if ((pcm & expMask) !== 0) break;
+                    exp--;
+                    expMask >>= 1;
+                }
+                
+                let mantissa = (pcm >> ((exp === 0) ? 4 : exp + 3)) & 0x0F;
+                let alaw = (sign | (exp << 4) | mantissa) ^ 0x55;
+                
+                return alaw & 0xFF;
+            }
+            
+            encodeG711ALaw(pcm16Array) {
+                const alawData = new Uint8Array(pcm16Array.length);
+                
+                for (let i = 0; i < pcm16Array.length; i++) {
+                    const index = (pcm16Array[i] + 32768) & 0xFFFF;
+                    alawData[i] = this.pcmToAlawTable[index];
+                }
+                
+                return alawData;
+            }
+            
+            // === JT1078 FRAME CREATION ===
+            sendAudioFrame(audioData) {
+                if (!this.transmitWs || this.transmitWs.readyState !== WebSocket.OPEN) return;
+                if (audioData.length !== 320) return; // Ensure exactly 320 bytes
+                if (!this.selectedDevice) return; // Must have selected device
+                
+                const frame = this.createJT1078Frame(audioData);
+                this.transmitWs.send(frame);
+                this.metrics.framesSent++;
+            }
+            
+            createJT1078Frame(audioData) {
+                // Frame structure: Header(28) + BCD_Timestamp(8) + Length(2) + Audio_Data(320)
+                const frameSize = 28 + 8 + 2 + audioData.length;
+                const frame = new ArrayBuffer(frameSize);
+                const view = new DataView(frame);
+                const uint8View = new Uint8Array(frame);
+                
+                // Bytes 0-3: Protocol header (always the same)
+                uint8View[0] = 0x30;
+                uint8View[1] = 0x31;
+                uint8View[2] = 0x63;
+                uint8View[3] = 0x64;
+                
+                // Bytes 4-5: Reserved (match received frames)
+                uint8View[4] = 0x81;
+                uint8View[5] = 0x06;
+                
+                // Bytes 6-7: Sequential number (big endian)
+                view.setUint16(6, this.sequenceNumber++, false);
+                
+                // Bytes 8-13: Device phone number in BCD format (DYNAMIC!)
+                if (this.deviceBCD) {
+                    uint8View.set(this.deviceBCD, 8);
+                } else {
+                    // Fallback to default if no device selected
+                    uint8View[8] = 0x01;
+                    uint8View[9] = 0x88;
+                    uint8View[10] = 0x53;
+                    uint8View[11] = 0x51;
+                    uint8View[12] = 0x26;
+                    uint8View[13] = 0x07;
+                }
+                
+                // Byte 14: Logic Channel (always the same)
+                uint8View[14] = 0x24;
+                
+                // Byte 15: Data type (always the same)
+                uint8View[15] = 0x30; // dataType=3, subType=0 (Audio frame)
+                
+                // Bytes 16-23: BCD Timestamp (calculate properly)
+                const now = new Date();
+                const bcdTimestamp = this.createBCDTimestamp(now);
+                uint8View.set(bcdTimestamp, 16);
+                
+                // Bytes 24-25: Payload length (always 320 bytes)
+                view.setUint16(24, 320, false); // Big endian: 0x0140 = 320
+                
+                // Bytes 26-345: Audio data (320 bytes)
+                uint8View.set(audioData, 26);
+                
+                return frame;
+            }
+            
+            // Helper function to create BCD timestamp
+            createBCDTimestamp(date) {
+                const bcd = new Uint8Array(8);
+                
+                // Convert to BCD format: YY MM DD HH MM SS MS MS
+                const year = date.getFullYear() % 100;
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const hour = date.getHours();
+                const minute = date.getMinutes();
+                const second = date.getSeconds();
+                const ms = Math.floor(date.getMilliseconds() / 10); // Convert to centiseconds
+                
+                bcd[0] = this.toBCD(year);
+                bcd[1] = this.toBCD(month);
+                bcd[2] = this.toBCD(day);
+                bcd[3] = this.toBCD(hour);
+                bcd[4] = this.toBCD(minute);
+                bcd[5] = this.toBCD(second);
+                bcd[6] = this.toBCD(ms);
+                bcd[7] = 0x00; // Additional precision
+                
+                return bcd;
+            }
+            
+            // Helper function to convert number to BCD
+            toBCD(num) {
+                const tens = Math.floor(num / 10) % 10;
+                const ones = num % 10;
+                return (tens << 4) | ones;
+            }
+            
+            // === UTILITY FUNCTIONS ===
+            updateReceiveStatus(message, color = '#333') {
+                const status = document.getElementById('receiveStatus');
+                status.textContent = message;
+                status.style.borderLeftColor = color;
+            }
+            
+            updateTransmitStatus(message, color = '#333') {
+                const status = document.getElementById('transmitStatus');
+                status.textContent = message;
+                status.style.borderLeftColor = color;
+            }
+            
+            updateVolumeLevel(volume) {
+                const volumeBar = document.getElementById('volumeBar');
+                const micLevel = document.getElementById('micLevel');
+                
+                volumeBar.style.width = Math.min(100, volume) + '%';
+                micLevel.textContent = Math.round(volume);
+            }
+            
+            // === AUDIO PLAYBACK FUNCTIONS ===
+            normalizeDuration(duration, sampleCount) {
+                const expectedDuration = sampleCount / 8000.0;
+                if (Math.abs(duration - expectedDuration) > 0.02) {
+                    return expectedDuration;
+                }
+                return Math.max(0.02, Math.min(duration, 0.25));
+            }
+            
+            applyAudioEnhancements(sample, index, totalSamples) {
+                const threshold = 0.0015;
+                if (Math.abs(sample) < threshold) return 0;
+                return Math.max(-1, Math.min(1, sample));
+            }
+            
+            manageBuffer(audioFrame) {
+                if (this.isPTTActive && this.audioBuffer.length >= 1) {
+                    this.playFrameDirectly(audioFrame);
+                    return;
+                }
+                
+                if (this.audioBuffer.length >= this.maxBufferSize) {
+                    return;
+                }
+                
+                this.audioBuffer.push(audioFrame);
+                
+                if (!this.isReceiving && this.audioBuffer.length >= this.minBufferSize) {
+                    this.startPlayback();
+                }
+            }
+            
+            startPlayback() {
+                this.isReceiving = true;
+                this.nextPlayTime = this.audioContext.currentTime + 0.1;
+                this.scheduleNextFrame();
+            }
+            
+            scheduleNextFrame() {
+                if (!this.isReceiving || this.audioBuffer.length === 0) {
+                    if (this.audioBuffer.length === 0) {
+                        this.isReceiving = false;
+                        setTimeout(() => {
+                            if (this.audioBuffer.length >= this.minBufferSize && !this.isReceiving) {
+                                this.startPlayback();
+                            }
+                        }, 25);
+                    }
+                    return;
+                }
+                
+                const frame = this.audioBuffer.shift();
+                this.playFrameDirectly(frame);
+            }
+            
+            playFrameDirectly(frame) {
+                const currentTime = this.audioContext.currentTime;
+                let targetStartTime = Math.max(currentTime + 0.005, this.nextPlayTime);
+                
+                const audioBuffer = this.createAudioBuffer(frame);
+                const source = this.audioContext.createBufferSource();
+                const gainNode = this.audioContext.createGain();
+                
+                gainNode.gain.value = 0.8;
+                source.buffer = audioBuffer;
+                source.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                source.start(targetStartTime);
+                this.nextPlayTime = targetStartTime + frame.duration;
+                
+                this.activeSources.add(source);
+                source.onended = () => {
+                    this.activeSources.delete(source);
+                    this.metrics.framesReceived++;
+                    
+                    if (this.isReceiving) {
+                        this.scheduleNextFrame();
+                    }
+                };
+                
+                const latency = (currentTime - (frame.timestamp / 1000)) * 1000;
+                this.metrics.totalLatency += latency;
+                this.metrics.latencyCount++;
+            }
+            
+            createAudioBuffer(frame) {
+                const buffer = this.audioContext.createBuffer(1, frame.samples.length, this.audioContext.sampleRate);
+                const channelData = buffer.getChannelData(0);
+                
+                for (let i = 0; i < frame.samples.length; i++) {
+                    let sample = frame.samples[i];
+                    
+                    const fadeLength = Math.min(5, frame.samples.length / 8);
+                    if (i < fadeLength) {
+                        sample *= i / fadeLength;
+                    } else if (i >= frame.samples.length - fadeLength) {
+                        sample *= (frame.samples.length - i) / fadeLength;
+                    }
+                    
+                    channelData[i] = sample;
+                }
+                
+                return buffer;
+            }
+            
+            stopReceiving() {
+                this.isReceiving = false;
+                this.cleanup();
+                this.updateReceiveStatus('Reception stopped', '#666');
+                document.getElementById('playButton').disabled = false;
+                document.getElementById('stopReceiveButton').disabled = true;
+            }
+            
+            async stopTransmitting() {
+                this.stopPTT();
+                
+                if (this.mediaStream) {
+                    this.mediaStream.getTracks().forEach(track => track.stop());
+                    this.mediaStream = null;
+                }
+                
+                if (this.audioProcessor) {
+                    try {
+                        this.audioProcessor.disconnect();
+                        // Clean up AudioWorklet port if it exists
+                        if (this.audioProcessor.port) {
+                            this.audioProcessor.port.close();
+                        }
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                    this.audioProcessor = null;
+                }
+                
+                if (this.transmitWs) {
+                    this.transmitWs.close();
+                    this.transmitWs = null;
+                }
+                
+                document.getElementById('setupMicButton').disabled = false;
+                document.getElementById('stopTransmitButton').disabled = true;
+                document.getElementById('pttButton').disabled = true;
+                document.getElementById('tcpStatus').textContent = 'Disconnected';
+                
+                this.updateTransmitStatus('Transmission stopped', '#666');
+                this.updateVolumeLevel(0);
+                
+                // Auto-stop call when stopping transmission
+                if (this.currentCall) {
+                    await this.stopCall();
+                }
+            }
+            
+            cleanup() {
+                if (this.cleanupInterval) {
+                    clearInterval(this.cleanupInterval);
+                    this.cleanupInterval = null;
+                }
+                
+                this.activeSources.forEach(source => {
+                    try {
+                        source.stop();
+                        source.disconnect();
+                    } catch (e) {}
+                });
+                this.activeSources.clear();
+                
+                if (this.audioContext && this.audioContext.state !== 'closed') {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                
+                if (this.receiveWs) {
+                    this.receiveWs.close();
+                    this.receiveWs = null;
+                }
+                
+                this.audioBuffer = [];
+                this.nextPlayTime = 0;
+                this.frameCount = 0;
+            }
+            
+            startMemoryManagement() {
+                this.cleanupInterval = setInterval(() => {
+                    if (this.activeSources.size > 50) {
+                        this.activeSources.clear();
+                    }
+                    
+                    const now = performance.now();
+                    this.audioBuffer = this.audioBuffer.filter(frame => 
+                        (now - frame.timestamp) < 5000
+                    );
+                }, 2000);
+            }
+            
+            startMetricsUpdater() {
+                setInterval(() => {
+                    document.getElementById('bufferLevel').textContent = this.audioBuffer.length;
+                    
+                    const avgLatency = this.metrics.latencyCount > 0 
+                        ? (this.metrics.totalLatency / this.metrics.latencyCount).toFixed(1)
+                        : '0';
+                    document.getElementById('latency').textContent = avgLatency;
+                    
+                    document.getElementById('framesReceived').textContent = this.metrics.framesReceived;
+                    document.getElementById('framesSent').textContent = this.metrics.framesSent;
+                }, 500);
+            }
+        }
+        
+        // Initialize the two-way audio system when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TwoWayAudioSystem();
+        });
+    </script>
+</body>
+</html>

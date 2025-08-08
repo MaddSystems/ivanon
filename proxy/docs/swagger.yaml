@@ -1,0 +1,9 @@
+basePath: /
+host: ivan-proxy.armaddia.lat
+info:
+  contact: {}
+  description: API for managing JT808 devices and VoIP calls.
+  title: JT808 Proxy API
+  version: "1.0"
+paths: {}
+swagger: "2.0"
