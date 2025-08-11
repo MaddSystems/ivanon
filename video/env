@@ -1,0 +1,4 @@
+export PLATFORM_HOST="y.gpstracktech.com:7788"
+export VOIP_SERVER_URL="https://voip-server.armaddia.lat"
+export AUDIO_SERVER_PORT="7800"
+export AUDIO_SERVER_IP="3.13.95.26"

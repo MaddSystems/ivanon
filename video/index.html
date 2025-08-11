@@ -1123,10 +1123,10 @@
             
             connectVideoWebSocket() {
                 this.updateVideoStatus('Connecting to video stream...', '#ff9800');
-                this.debugLog('Attempting WebSocket connection to ws://localhost:8081/video');
+                this.debugLog('Attempting WebSocket connection to wss://voip.armaddia.lat/video');
                 
                 // Video WebSocket connection (receives video frames only)
-                this.videoWs = new WebSocket('ws://localhost:8081/video');
+                this.videoWs = new WebSocket('wss://voip.armaddia.lat/video');
                 this.videoWs.binaryType = 'arraybuffer';
                 
                 this.videoWs.onopen = () => {
@@ -1147,8 +1147,8 @@
                 };
                 
                 // Audio WebSocket connection (receives audio frames only)
-                this.debugLog('Attempting WebSocket connection to ws://localhost:8081/ws for audio');
-                this.audioWs = new WebSocket('ws://localhost:8081/ws');
+                this.debugLog('Attempting WebSocket connection to wss://voip.armaddia.lat/ws for audio');
+                this.audioWs = new WebSocket('wss://voip.armaddia.lat/ws');
                 this.audioWs.binaryType = 'arraybuffer';
                 
                 this.audioWs.onopen = () => {

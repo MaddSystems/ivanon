@@ -1,5 +1,17 @@
 # Project Structure Overview
 
+### HARDCODED ADRESSES
+
+- video/index.html
+```
+wss://voip.armaddia.lat/video
+```
+
+- video/main.go
+```
+https://ivan-proxy.armaddia.lat
+```
+
 This repository is a telematics/GPS tracking infrastructure with the following main components:
 
 - **proxy/** — JT808 protocol proxy with VoIP, MQTT, and REST API support
