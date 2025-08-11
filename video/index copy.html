@@ -548,7 +548,7 @@
                 this.audioInteractionRequired = true;
                 
                 // Debug system
-                this.debugMode = false; // Debug disabled by default for cleaner console
+                this.debugMode = true; // Enable debug by default to help troubleshoot
                 this.detectedChannels = new Set();
                 this.frameTypesSeeen = new Set();
                 this.debugLogEntries = [];
@@ -570,17 +570,16 @@
                 this.startMetricsUpdater();
                 this.loadDevices();
                 
-                // Debug panel is now hidden by default - users can enable it using the debug button
                 // Enable debug panel by default
-                // setTimeout(() => {
-                //     const debugPanel = document.getElementById('debugPanel');
-                //     const debugButton = document.getElementById('debugToggleButton');
-                //     if (debugPanel && debugButton) {
-                //         debugPanel.classList.remove('hidden');
-                //         debugButton.textContent = '🐛 Hide Debug';
-                //         debugButton.style.background = '#ff5722';
-                //     }
-                // }, 100);
+                setTimeout(() => {
+                    const debugPanel = document.getElementById('debugPanel');
+                    const debugButton = document.getElementById('debugToggleButton');
+                    if (debugPanel && debugButton) {
+                        debugPanel.classList.remove('hidden');
+                        debugButton.textContent = '🐛 Hide Debug';
+                        debugButton.style.background = '#ff5722';
+                    }
+                }, 100);
             }
             
             // === CODEC SUPPORT CHECKING ===
@@ -660,9 +659,7 @@
                 
                 // Add click handler to resume audio context
                 const resumeAudio = async (event) => {
-                    if (this.debugMode) {
-                        console.log('Resume audio called, context state:', this.audioContext?.state);
-                    }
+                    console.log('Resume audio called, context state:', this.audioContext?.state);
                     this.debugLog(`User interaction detected, audio context state: ${this.audioContext?.state}`);
                     
                     if (this.audioContext && this.audioContext.state === 'suspended') {
@@ -694,9 +691,7 @@
                             this.debugLog('Audio interaction handlers removed after successful activation');
                         } catch (error) {
                             this.debugLog('Failed to resume audio context: ' + error.message);
-                            if (this.debugMode) {
-                                console.error('Failed to resume audio context:', error);
-                            }
+                            console.error('Failed to resume audio context:', error);
                         }
                     }
                 };
@@ -716,9 +711,7 @@
                 // Add a simple test click handler to verify clicks are working
                 document.addEventListener('click', (event) => {
                     this.debugLog(`Click detected on element: ${event.target.tagName} (${event.target.id || 'no id'})`);
-                    if (this.debugMode) {
-                        console.log('Click detected:', event.target);
-                    }
+                    console.log('Click detected:', event.target);
                 });
                 
                 this.debugLog('Audio interaction handlers set up');
@@ -788,9 +781,7 @@
                     this.debugLog(`Scheduled audio frame ${this.metrics.audioFrames}: ${audioData.length} bytes G.711A -> ${pcmData.length} PCM samples at time ${this.audioScheduler.nextPlayTime.toFixed(3)}`);
                     
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Error scheduling audio:', error);
-                    }
+                    console.error('Error scheduling audio:', error);
                     this.debugLog('Error scheduling audio: ' + error.message);
                 }
             }
@@ -821,9 +812,7 @@
                             this.decoderQueueSize = Math.max(0, this.decoderQueueSize - 1);
                         },
                         error: (error) => {
-                            if (this.debugMode) {
-                                console.error('Video decoder error:', error);
-                            }
+                            console.error('Video decoder error:', error);
                             this.debugLog('Video decoder error: ' + error.message);
                             this.handleError('Video decoder error: ' + error.message);
                             
@@ -857,9 +846,7 @@
                     
                     return true;
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Failed to initialize video decoder:', error);
-                    }
+                    console.error('Failed to initialize video decoder:', error);
                     this.debugLog('Failed to initialize video decoder: ' + error.message);
                     this.handleError('Failed to initialize video decoder: ' + error.message);
                     this.isVideoDecoderReady = false;
@@ -950,9 +937,7 @@
                     this.debugLog(`Rendered video frame ${this.metrics.decodedFrames}: ${videoFrame.displayWidth}x${videoFrame.displayHeight}`);
                     
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Error rendering video frame:', error);
-                    }
+                    console.error('Error rendering video frame:', error);
                     this.debugLog('Error rendering video frame: ' + error.message);
                 }
             }
@@ -1040,19 +1025,15 @@
                     this.debugLogEntries.shift();
                 }
                 
-                // Only show debug messages when debug mode is enabled
                 if (this.debugMode) {
                     const debugLog = document.getElementById('debugLog');
-                    if (debugLog) {
-                        debugLog.innerHTML = this.debugLogEntries.map(entry => 
-                            `<div class="debug-entry">${entry}</div>`
-                        ).join('');
-                        debugLog.scrollTop = debugLog.scrollHeight;
-                    }
-                    
-                    // Only log to browser console when debug mode is enabled
-                    console.log(`[DEBUG] ${message}`);
+                    debugLog.innerHTML = this.debugLogEntries.map(entry => 
+                        `<div class="debug-entry">${entry}</div>`
+                    ).join('');
+                    debugLog.scrollTop = debugLog.scrollHeight;
                 }
+                
+                console.log(`[DEBUG] ${message}`);
             }
             
             toggleDebug() {
@@ -1352,9 +1333,7 @@
                         this.bufferVideoFrame(h264Data, frameType, seqNum, channel);
                     }
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Error decoding video frame:', error);
-                    }
+                    console.error('Error decoding video frame:', error);
                     this.debugLog('Video decode error: ' + error.message);
                     this.handleError('Video decode error: ' + error.message);
                 }
@@ -1517,9 +1496,7 @@
                     this.processAudioFrame(audioData);
                     this.debugLog(`Processed G.711A audio: SN:${seqNum}, Size:${audioData.length}B`);
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Error processing audio frame:', error);
-                    }
+                    console.error('Error processing audio frame:', error);
                     this.debugLog('Audio process error: ' + error.message);
                 }
             }
@@ -1545,9 +1522,7 @@
                     this.processAudioFrame(g711aData);
                     this.debugLog(`[AUDIO-WS] Processed audio: Duration=${durationFloat.toFixed(3)}s, G711ASize=${g711aData.length}B`);
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('Error processing audio WebSocket data:', error);
-                    }
+                    console.error('Error processing audio WebSocket data:', error);
                     this.debugLog('[AUDIO-WS] Audio process error: ' + error.message);
                 }
             }
@@ -1595,9 +1570,7 @@
                             this.videoDecoder.flush();
                             this.videoDecoder.close();
                         } catch (error) {
-                            if (this.debugMode) {
-                                console.error('Error flushing/closing video decoder:', error);
-                            }
+                            console.error('Error flushing/closing video decoder:', error);
                         }
                         this.videoDecoder = null;
                     }
@@ -1734,9 +1707,7 @@
                             this.videoDecoder.flush();
                             this.videoDecoder.close();
                         } catch (error) {
-                            if (this.debugMode) {
-                                console.error('Error flushing/closing video decoder:', error);
-                            }
+                            console.error('Error flushing/closing video decoder:', error);
                         }
                         this.videoDecoder = null;
                     }
@@ -1804,9 +1775,7 @@
                     }
                     return await response.json();
                 } catch (error) {
-                    if (this.debugMode) {
-                        console.error('API Request failed:', error);
-                    }
+                    console.error('API Request failed:', error);
                     this.showApiStatus(`API Error: ${error.message}`, 'error');
                     throw error;
                 }
@@ -1956,9 +1925,7 @@
             }
 
             handleError(message) {
-                if (this.debugMode) {
-                    console.error(message);
-                }
+                console.error(message);
                 this.debugLog('ERROR: ' + message);
                 this.showApiStatus('Error: ' + message, 'error');
             }
