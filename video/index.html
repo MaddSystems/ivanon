@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JT1078 Video Streaming - WebCodecs Player</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .device-section {
+            border-color: #9C27B0;
+            background: #faf8ff;
+        }
+
+        .video-section {
+            border-color: #FF9800;
+            background: #fff8e1;
+        }
+
+        button { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            margin: 10px; 
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .device-btn {
+            background: #9C27B0;
+            color: white;
+        }
+        .device-btn:hover {
+            background: #7B1FA2;
+        }
+
+        .video-btn {
+            background: #FF9800;
+            color: white;
+        }
+        .video-btn:hover {
+            background: #F57C00;
+        }
+
+        .stop-btn {
+            background: #f44336;
+            color: white;
+        }
+        .stop-btn:hover {
+            background: #da190b;
+        }
+
+        .stop-all-btn {
+            background: #9e0000;
+            color: white;
+            font-weight: bold;
+        }
+        .stop-all-btn:hover {
+            background: #7d0000;
+        }
+
+        .debug-btn {
+            background: #607d8b;
+            color: white;
+        }
+        .debug-btn:hover {
+            background: #455a64;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .video-player {
+            width: 100%;
+            height: auto;
+            min-height: 450px;
+            background: #000;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .channel-selector {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .channel-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .channel-btn.active {
+            background: #FF9800;
+            border-color: #F57C00;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .channel-btn:hover:not(.active) {
+            background: #d0d0d0;
+            border-color: #bbb;
+        }
+
+        .channel-info {
+            margin: 10px 0;
+            padding: 8px;
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 4px;
+        }
+
+        .channel-info small {
+            color: #e65100;
+            font-style: italic;
+        }
+
+        .device-list {
+            display: grid;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .device-item:hover {
+            background: #f0f0f0;
+            border-color: #ccc;
+        }
+
+        .device-item.selected {
+            border-color: #9C27B0;
+            background: #f3e5f5;
+            box-shadow: 0 2px 4px rgba(156, 39, 176, 0.2);
+        }
+
+        .device-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .device-phone {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .device-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .device-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .api-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .api-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .api-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Debug Panel Styles */
+        .debug-panel {
+            margin: 20px 0;
+            padding: 15px;
+            background: #263238;
+            color: #ffffff;
+            border-radius: 8px;
+            border: 2px solid #37474f;
+        }
+
+        .debug-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .debug-info div {
+            padding: 5px;
+            background: #37474f;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .debug-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            border: 1px solid #444;
+        }
+
+        .debug-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .debug-entry:last-child {
+            border-bottom: none;
+        }
+
+        /* Codec Support Indicators */
+        .codec-status {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .codec-supported {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            color: #2e7d32;
+        }
+
+        .codec-not-supported {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .metrics {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            
+            .debug-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .channel-selector {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 JT1078 Video Streaming - WebCodecs + Web Audio</h1>
+        
+        <!-- Device Selection Section -->
+        <div class="section device-section">
+            <h3>📱 Device Selection</h3>
+            <div class="status" id="deviceStatus">Loading devices...</div>
+            
+            <div class="controls">
+                <button id="refreshDevicesButton" class="device-btn">🔄 Refresh Devices</button>
+            </div>
+            
+            <div class="api-status hidden" id="apiStatus"></div>
+            <div class="device-list" id="deviceList"></div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Selected Device</div>
+                    <div class="metric-value" id="selectedDevice">None</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Device Status</div>
+                    <div class="metric-value" id="deviceConnectionStatus">Offline</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Section -->
+        <div class="section video-section">
+            <h3>📺 Video & Audio Streaming</h3>
+            <div class="status" id="videoStatus">Checking codec support...</div>
+            
+            <!-- Codec Support Status -->
+            <div id="codecStatus" class="codec-status codec-not-supported">
+                🔄 Checking WebCodecs and Web Audio support...
+            </div>
+            
+            <!-- Audio Enable Banner -->
+            <div id="audioEnableBanner" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 5px; text-align: center;">
+                <strong>🔊 Click anywhere on this page to enable audio!</strong>
+                <br><small>Your browser requires user interaction to play audio.</small>
+            </div>
+            
+            <div class="controls">
+                <button id="startVideoButton" class="video-btn" disabled>📹 Start Video Stream</button>
+                <button id="stopVideoButton" class="stop-btn" disabled>⏹️ Stop Video</button>
+                <button id="stopAllChannelsButton" class="stop-all-btn" disabled>🛑 Stop All Channels</button>
+                <button id="enableAudioButton" class="video-btn" style="display: none;">🔊 Enable Audio</button>
+                <button id="debugToggleButton" class="debug-btn">🐛 Toggle Debug</button>
+            </div>
+            
+            <!-- Channel Selector -->
+            <div>
+                <label><strong>Select Channel:</strong></label>
+                <div class="channel-selector" id="channelSelector">
+                    <div class="channel-btn" data-channel="1">Channel 1</div>
+                    <div class="channel-btn active" data-channel="2">Channel 2</div>
+                    <div class="channel-btn" data-channel="3">Channel 3</div>
+                    <div class="channel-btn" data-channel="4">Channel 4</div>
+                </div>
+                <div class="channel-info">
+                    <small>⚠️ Changing channel will automatically stop all other active streams</small>
+                </div>
+            </div>
+            
+            <!-- Video Player -->
+            <div class="video-container">
+                <canvas id="videoCanvas" class="video-player" width="1280" height="720"></canvas>
+                <div class="video-overlay" id="videoOverlay">
+                    <div style="font-size: 48px;">📺</div>
+                    <div style="font-size: 18px; margin-top: 10px;">No video stream</div>
+                    <div style="font-size: 14px; margin-top: 5px;">Select device and start video</div>
+                </div>
+            </div>
+            
+            <!-- Debug Panel -->
+            <div class="debug-panel hidden" id="debugPanel">
+                <h4>🐛 Debug Information</h4>
+                <div class="debug-info">
+                    <div><strong>WebSocket Status:</strong> <span id="debugWsStatus">Disconnected</span></div>
+                    <div><strong>Active Channel:</strong> <span id="debugActiveChannel">None</span></div>
+                    <div><strong>Channels Detected:</strong> <span id="debugChannels">None</span></div>
+                    <div><strong>Frame Types Seen:</strong> <span id="debugFrameTypes">None</span></div>
+                    <div><strong>Last API Call:</strong> <span id="debugLastApiCall">None</span></div>
+                    <div><strong>Stream Status:</strong> <span id="debugStreamStatus">Stopped</span></div>
+                    <div><strong>Video Decoder:</strong> <span id="debugVideoDecoder">Not Ready</span></div>
+                    <div><strong>Audio Context:</strong> <span id="debugAudioContext">Not Ready</span></div>
+                </div>
+                <div class="debug-log" id="debugLog"></div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">Active Channel</div>
+                    <div class="metric-value" id="currentChannel">None</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Video Frames</div>
+                    <div class="metric-value" id="videoFrames">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Decoded Frames</div>
+                    <div class="metric-value" id="decodedFrames">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Audio Frames</div>
+                    <div class="metric-value" id="audioFrames">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Frame Rate</div>
+                    <div class="metric-value" id="frameRate">0 fps</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Connection</div>
+                    <div class="metric-value" id="videoConnectionStatus">Disconnected</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Data Received</div>
+                    <div class="metric-value" id="dataReceived">0 KB</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Last Frame</div>
+                    <div class="metric-value" id="lastFrameType">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class JT1078WebCodecsPlayer {
+            constructor() {
+                // API Configuration
+                this.apiBaseUrl = '/api';
+                
+                // Device management
+                this.devices = [];
+                this.selectedDevice = null;
+                this.selectedChannel = 2; // Default to channel 2 based on logs
+                
+                // Video system state
+                this.videoWs = null;
+                this.audioWs = null;
+                this.videoCanvas = null;
+                this.videoContext = null;
+                this.isVideoActive = false;
+                this.activeStreamChannel = null;
+                
+                // WebCodecs for H.264 video
+                this.videoDecoder = null;
+                this.isVideoDecoderReady = false;
+                this.sps = null;
+                this.pps = null;
+                this.videoFrameBuffer = [];
+                this.waitingForSpsPs = true;
+                this.waitingForKeyFrame = true;
+                this.decoderQueueSize = 0;
+                this.maxQueueSize = 10; // Prevent decoder overflow
+                this.queueFullTime = null; // Track when queue becomes full
+                
+                // Web Audio API for G.711A audio
+                this.audioContext = null;
+                this.audioBuffer = [];
+                this.isAudioReady = false;
+                this.audioScheduler = {
+                    nextPlayTime: 0,
+                    sampleRate: 8000,
+                    frameSize: 160, // typical G.711 frame size (20ms at 8kHz)
+                    bufferQueue: [],
+                    isPlaying: false
+                };
+                this.audioInteractionRequired = true;
+                
+                // Debug system
+                this.debugMode = true; // Enable debug by default to help troubleshoot
+                this.detectedChannels = new Set();
+                this.frameTypesSeeen = new Set();
+                this.debugLogEntries = [];
+                
+                // Metrics
+                this.metrics = {
+                    videoFrames: 0,
+                    decodedFrames: 0,
+                    audioFrames: 0,
+                    dataReceived: 0,
+                    lastFrameTime: 0,
+                    frameRate: 0,
+                    lastFrameType: '-'
+                };
+                
+                this.checkCodecSupport();
+                this.setupEventListeners();
+                this.setupVideo();
+                this.startMetricsUpdater();
+                this.loadDevices();
+                
+                // Enable debug panel by default
+                setTimeout(() => {
+                    const debugPanel = document.getElementById('debugPanel');
+                    const debugButton = document.getElementById('debugToggleButton');
+                    if (debugPanel && debugButton) {
+                        debugPanel.classList.remove('hidden');
+                        debugButton.textContent = '🐛 Hide Debug';
+                        debugButton.style.background = '#ff5722';
+                    }
+                }, 100);
+            }
+            
+            // === CODEC SUPPORT CHECKING ===
+            async checkCodecSupport() {
+                let webCodecsSupported = false;
+                let webAudioSupported = false;
+                let statusText = '';
+                
+                // Check WebCodecs API
+                if (window.VideoDecoder) {
+                    try {
+                        const config = {
+                            codec: 'avc1.42E01E', // H.264 Baseline Profile
+                            hardwareAcceleration: 'prefer-hardware'
+                        };
+                        
+                        const support = await VideoDecoder.isConfigSupported(config);
+                        if (support.supported) {
+                            webCodecsSupported = true;
+                            statusText += '✅ WebCodecs H.264 supported. ';
+                            // Don't initialize decoder here - wait for SPS/PPS
+                            this.debugLog('WebCodecs supported, waiting for SPS/PPS before initialization');
+                        } else {
+                            statusText += '❌ H.264 not supported by WebCodecs. ';
+                        }
+                    } catch (error) {
+                        statusText += '❌ WebCodecs error: ' + error.message + '. ';
+                    }
+                } else {
+                    statusText += '❌ WebCodecs not available (need Chrome 94+). ';
+                }
+                
+                // Check Web Audio API
+                if (window.AudioContext || window.webkitAudioContext) {
+                    try {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        
+                        // Handle autoplay policy - audio context starts suspended
+                        if (this.audioContext.state === 'suspended') {
+                            statusText += '🔇 Web Audio API supported (autoplay blocked - click to enable). ';
+                            webAudioSupported = true; // Still supported, just suspended
+                            this.debugLog('Audio context suspended due to autoplay policy');
+                        } else {
+                            webAudioSupported = true;
+                            statusText += '✅ Web Audio API supported.';
+                            this.isAudioReady = true;
+                            this.audioInteractionRequired = false;
+                        }
+                        
+                        this.setupAudioInteractionHandler();
+                        this.updateDebugInfo();
+                    } catch (error) {
+                        statusText += '❌ Web Audio error: ' + error.message + '.';
+                    }
+                } else {
+                    statusText += '❌ Web Audio API not supported.';
+                }
+                
+                // Update UI
+                const codecStatus = document.getElementById('codecStatus');
+                if (webCodecsSupported && webAudioSupported) {
+                    codecStatus.className = 'codec-status codec-supported';
+                    this.updateVideoStatus('Ready for H.264 video + G.711A audio streaming', '#4CAF50');
+                    document.getElementById('startVideoButton').disabled = false;
+                } else {
+                    codecStatus.className = 'codec-status codec-not-supported';
+                    this.updateVideoStatus('Browser compatibility issues detected', '#f44336');
+                }
+                codecStatus.textContent = statusText;
+                
+                this.debugLog('Codec support check: ' + statusText);
+            }
+
+            setupAudioInteractionHandler() {
+                const enableAudioButton = document.getElementById('enableAudioButton');
+                const audioEnableBanner = document.getElementById('audioEnableBanner');
+                
+                // Add click handler to resume audio context
+                const resumeAudio = async (event) => {
+                    console.log('Resume audio called, context state:', this.audioContext?.state);
+                    this.debugLog(`User interaction detected, audio context state: ${this.audioContext?.state}`);
+                    
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        try {
+                            await this.audioContext.resume();
+                            this.isAudioReady = true;
+                            this.audioInteractionRequired = false;
+                            this.debugLog('Audio context resumed - audio now enabled');
+                            
+                            // Update UI
+                            const codecStatus = document.getElementById('codecStatus');
+                            codecStatus.className = 'codec-status codec-supported';
+                            codecStatus.textContent = codecStatus.textContent.replace('🔇 Web Audio API supported (autoplay blocked - click to enable)', '✅ Web Audio API enabled');
+                            this.updateVideoStatus('Ready for H.264 video + G.711A audio streaming', '#4CAF50');
+                            this.updateDebugInfo();
+                            
+                            // Hide the enable audio button and banner
+                            enableAudioButton.style.display = 'none';
+                            audioEnableBanner.style.display = 'none';
+                            
+                            // Start processing queued audio frames
+                            this.startAudioScheduler();
+                            
+                            // Remove the event listener after first interaction
+                            document.removeEventListener('click', resumeAudio);
+                            document.removeEventListener('keydown', resumeAudio);
+                            enableAudioButton.removeEventListener('click', resumeAudio);
+                            
+                            this.debugLog('Audio interaction handlers removed after successful activation');
+                        } catch (error) {
+                            this.debugLog('Failed to resume audio context: ' + error.message);
+                            console.error('Failed to resume audio context:', error);
+                        }
+                    }
+                };
+                
+                // Show enable audio button and banner if context is suspended
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    enableAudioButton.style.display = 'inline-block';
+                    audioEnableBanner.style.display = 'block';
+                    enableAudioButton.addEventListener('click', resumeAudio);
+                    this.debugLog('Enable audio button and banner shown, click handler added');
+                }
+                
+                // Listen for user interaction to enable audio
+                document.addEventListener('click', resumeAudio, { once: false });
+                document.addEventListener('keydown', resumeAudio, { once: false });
+                
+                // Add a simple test click handler to verify clicks are working
+                document.addEventListener('click', (event) => {
+                    this.debugLog(`Click detected on element: ${event.target.tagName} (${event.target.id || 'no id'})`);
+                    console.log('Click detected:', event.target);
+                });
+                
+                this.debugLog('Audio interaction handlers set up');
+            }
+            
+            startAudioScheduler() {
+                if (!this.audioContext || !this.isAudioReady) return;
+                
+                this.audioScheduler.nextPlayTime = this.audioContext.currentTime;
+                this.audioScheduler.isPlaying = true;
+                
+                // Process queued audio frames
+                this.processAudioQueue();
+            }
+            
+            processAudioQueue() {
+                if (!this.audioScheduler.isPlaying || !this.audioContext || !this.isAudioReady) {
+                    return;
+                }
+                
+                // Process all queued frames
+                while (this.audioScheduler.bufferQueue.length > 0) {
+                    const audioData = this.audioScheduler.bufferQueue.shift();
+                    this.scheduleAudioFrame(audioData);
+                }
+                
+                // Schedule next queue processing
+                setTimeout(() => this.processAudioQueue(), 10); // Check every 10ms
+            }
+            
+            scheduleAudioFrame(audioData) {
+                if (!this.audioContext || !this.isAudioReady) {
+                    return;
+                }
+                
+                try {
+                    // Decode G.711A to PCM
+                    const pcmData = this.decodeG711A(audioData);
+                    
+                    // Create audio buffer with proper duration
+                    const frameDuration = pcmData.length / this.audioScheduler.sampleRate;
+                    const audioBuffer = this.audioContext.createBuffer(1, pcmData.length, this.audioScheduler.sampleRate);
+                    const channelData = audioBuffer.getChannelData(0);
+                    
+                    // Convert to float32 and normalize
+                    for (let i = 0; i < pcmData.length; i++) {
+                        channelData[i] = pcmData[i] / 32768.0; // Convert int16 to float32
+                    }
+                    
+                    // Schedule playback at the correct time
+                    const source = this.audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(this.audioContext.destination);
+                    
+                    // Ensure we don't schedule in the past
+                    const currentTime = this.audioContext.currentTime;
+                    if (this.audioScheduler.nextPlayTime < currentTime) {
+                        this.audioScheduler.nextPlayTime = currentTime;
+                    }
+                    
+                    source.start(this.audioScheduler.nextPlayTime);
+                    
+                    // Update next play time for seamless playback
+                    this.audioScheduler.nextPlayTime += frameDuration;
+                    
+                    this.metrics.audioFrames++;
+                    this.debugLog(`Scheduled audio frame ${this.metrics.audioFrames}: ${audioData.length} bytes G.711A -> ${pcmData.length} PCM samples at time ${this.audioScheduler.nextPlayTime.toFixed(3)}`);
+                    
+                } catch (error) {
+                    console.error('Error scheduling audio:', error);
+                    this.debugLog('Error scheduling audio: ' + error.message);
+                }
+            }
+            
+            // === VIDEO DECODER SETUP ===
+            initializeVideoDecoder() {
+                // Only initialize after SPS/PPS are found
+                if (!this.sps || !this.pps) {
+                    this.debugLog('Cannot initialize decoder: SPS/PPS missing');
+                    return false;
+                }
+
+                // Clean up existing decoder if present
+                if (this.videoDecoder) {
+                    try {
+                        this.videoDecoder.close();
+                    } catch (error) {
+                        this.debugLog('Error closing existing decoder: ' + error.message);
+                    }
+                }
+
+                try {
+                    this.videoDecoder = new VideoDecoder({
+                        output: (frame) => {
+                            this.renderVideoFrame(frame);
+                            frame.close();
+                            // Decrease queue size counter
+                            this.decoderQueueSize = Math.max(0, this.decoderQueueSize - 1);
+                        },
+                        error: (error) => {
+                            console.error('Video decoder error:', error);
+                            this.debugLog('Video decoder error: ' + error.message);
+                            this.handleError('Video decoder error: ' + error.message);
+                            
+                            // Reset decoder state on error
+                            this.isVideoDecoderReady = false;
+                            this.decoderQueueSize = 0;
+                            
+                            // Schedule a decoder reset for recovery
+                            setTimeout(() => {
+                                this.resetVideoDecoder();
+                            }, 500);
+                        }
+                    });
+
+                    // Configure decoder with SPS/PPS information
+                    this.videoDecoder.configure({
+                        codec: 'avc1.42E01E',
+                        hardwareAcceleration: 'prefer-hardware'
+                    });
+
+                    this.isVideoDecoderReady = true;
+                    this.waitingForSpsPs = false;
+                    this.waitingForKeyFrame = true;
+                    this.decoderQueueSize = 0;
+                    
+                    this.debugLog('Video decoder configured successfully with SPS/PPS');
+                    this.updateDebugInfo();
+                    
+                    // Process buffered frames, starting from first I-frame
+                    this.processBufferedFrames();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Failed to initialize video decoder:', error);
+                    this.debugLog('Failed to initialize video decoder: ' + error.message);
+                    this.handleError('Failed to initialize video decoder: ' + error.message);
+                    this.isVideoDecoderReady = false;
+                    return false;
+                }
+            }
+
+            processBufferedFrames() {
+                if (!this.isVideoDecoderReady || this.videoFrameBuffer.length === 0) {
+                    return;
+                }
+
+                this.debugLog(`Processing ${this.videoFrameBuffer.length} buffered frames`);
+                
+                // Find first I-frame in buffer
+                let keyFrameIndex = -1;
+                for (let i = 0; i < this.videoFrameBuffer.length; i++) {
+                    if (this.videoFrameBuffer[i].frameType === 0) {
+                        keyFrameIndex = i;
+                        break;
+                    }
+                }
+
+                if (keyFrameIndex === -1) {
+                    this.debugLog('No I-frame found in buffer, keeping frames for later');
+                    return;
+                }
+
+                // Process frames starting from the I-frame
+                const framesToProcess = this.videoFrameBuffer.splice(keyFrameIndex);
+                this.debugLog(`Found I-frame at index ${keyFrameIndex}, processing ${framesToProcess.length} frames`);
+
+                for (const frame of framesToProcess) {
+                    if (this.decoderQueueSize >= this.maxQueueSize) {
+                        // Queue is full, put remaining frames back in buffer
+                        this.videoFrameBuffer.unshift(...framesToProcess.slice(framesToProcess.indexOf(frame)));
+                        this.debugLog('Decoder queue full, deferring remaining frames');
+                        break;
+                    }
+                    this.handleVideoFrame(frame.h264Data, frame.frameType, frame.seqNum, frame.channel);
+                }
+            }
+
+            resetVideoDecoder() {
+                this.debugLog('Resetting video decoder due to errors or overflow');
+                
+                // Close existing decoder
+                if (this.videoDecoder) {
+                    try {
+                        this.videoDecoder.close();
+                    } catch (error) {
+                        this.debugLog('Error closing decoder during reset: ' + error.message);
+                    }
+                }
+                
+                // Reset state
+                this.videoDecoder = null;
+                this.isVideoDecoderReady = false;
+                this.waitingForKeyFrame = true;
+                this.decoderQueueSize = 0;
+                
+                // Clear buffer of old frames, keep only recent ones
+                if (this.videoFrameBuffer.length > 20) {
+                    const recentFrames = this.videoFrameBuffer.slice(-20);
+                    this.videoFrameBuffer = recentFrames;
+                    this.debugLog('Cleared old buffered frames, kept 20 most recent');
+                }
+                
+                // Try to reinitialize if we have SPS/PPS
+                if (this.sps && this.pps) {
+                    setTimeout(() => {
+                        this.debugLog('Attempting decoder reinitialization after reset');
+                        this.initializeVideoDecoder();
+                    }, 1000); // Wait 1 second before reinitializing
+                }
+            }
+            
+            renderVideoFrame(videoFrame) {
+                try {
+                    // Update canvas size to match video frame
+                    if (this.videoCanvas.width !== videoFrame.displayWidth || 
+                        this.videoCanvas.height !== videoFrame.displayHeight) {
+                        this.videoCanvas.width = videoFrame.displayWidth;
+                        this.videoCanvas.height = videoFrame.displayHeight;
+                    }
+                    
+                    // Draw the decoded frame to canvas
+                    this.videoContext.drawImage(videoFrame, 0, 0);
+                    
+                    this.metrics.decodedFrames++;
+                    this.debugLog(`Rendered video frame ${this.metrics.decodedFrames}: ${videoFrame.displayWidth}x${videoFrame.displayHeight}`);
+                    
+                } catch (error) {
+                    console.error('Error rendering video frame:', error);
+                    this.debugLog('Error rendering video frame: ' + error.message);
+                }
+            }
+            
+            // === AUDIO PROCESSING ===
+            processAudioFrame(audioData) {
+                if (!this.audioContext) return;
+                
+                // If audio context is suspended (autoplay policy), queue the frame
+                if (this.audioContext.state === 'suspended' || this.audioInteractionRequired) {
+                    this.audioScheduler.bufferQueue.push(audioData);
+                    this.debugLog(`Audio queued (context suspended): ${audioData.length} bytes, queue size: ${this.audioScheduler.bufferQueue.length}`);
+                    
+                    // Limit queue size to prevent memory issues
+                    if (this.audioScheduler.bufferQueue.length > 100) {
+                        this.audioScheduler.bufferQueue.shift(); // Remove oldest frame
+                        this.debugLog('Audio queue full, removed oldest frame');
+                    }
+                    return;
+                }
+                
+                // If audio is ready and scheduler is running, schedule the frame
+                if (this.isAudioReady && this.audioScheduler.isPlaying) {
+                    this.scheduleAudioFrame(audioData);
+                } else {
+                    // Queue for later processing
+                    this.audioScheduler.bufferQueue.push(audioData);
+                    this.debugLog(`Audio queued (scheduler not ready): ${audioData.length} bytes`);
+                }
+            }
+            
+            // G.711A decoder (A-law to PCM conversion) - Enhanced version
+            decodeG711A(alawData) {
+                if (!alawData || alawData.length === 0) {
+                    this.debugLog('Warning: Empty G.711A data received');
+                    return new Int16Array(0);
+                }
+                
+                const pcmData = new Int16Array(alawData.length);
+                
+                // A-law decompression table for better performance
+                const alawTable = this.getAlawDecompressionTable();
+                
+                for (let i = 0; i < alawData.length; i++) {
+                    const alaw = alawData[i];
+                    pcmData[i] = alawTable[alaw];
+                }
+                
+                return pcmData;
+            }
+            
+            // Pre-computed A-law decompression table for better performance
+            getAlawDecompressionTable() {
+                if (this.alawTable) return this.alawTable;
+                
+                this.alawTable = new Int16Array(256);
+                
+                for (let i = 0; i < 256; i++) {
+                    let alaw = i ^ 0x55; // Invert even bits
+                    let sign = alaw & 0x80;
+                    let exponent = (alaw & 0x70) >> 4;
+                    let mantissa = alaw & 0x0F;
+                    
+                    let sample;
+                    if (exponent === 0) {
+                        sample = (mantissa << 4) + 8;
+                    } else {
+                        sample = ((mantissa + 16) << (exponent + 3));
+                    }
+                    
+                    this.alawTable[i] = sign ? -sample : sample;
+                }
+                
+                return this.alawTable;
+            }
+            
+            // === DEBUG SYSTEM ===
+            debugLog(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                this.debugLogEntries.push(logEntry);
+                
+                // Keep only last 30 entries
+                if (this.debugLogEntries.length > 30) {
+                    this.debugLogEntries.shift();
+                }
+                
+                if (this.debugMode) {
+                    const debugLog = document.getElementById('debugLog');
+                    debugLog.innerHTML = this.debugLogEntries.map(entry => 
+                        `<div class="debug-entry">${entry}</div>`
+                    ).join('');
+                    debugLog.scrollTop = debugLog.scrollHeight;
+                }
+                
+                console.log(`[DEBUG] ${message}`);
+            }
+            
+            toggleDebug() {
+                this.debugMode = !this.debugMode;
+                const debugPanel = document.getElementById('debugPanel');
+                const debugButton = document.getElementById('debugToggleButton');
+                
+                if (this.debugMode) {
+                    debugPanel.classList.remove('hidden');
+                    debugButton.textContent = '🐛 Hide Debug';
+                    debugButton.style.background = '#ff5722';
+                } else {
+                    debugPanel.classList.add('hidden');
+                    debugButton.textContent = '🐛 Show Debug';
+                    debugButton.style.background = '#607d8b';
+                }
+            }
+            
+            updateDebugInfo() {
+                if (this.debugMode) {
+                    document.getElementById('debugActiveChannel').textContent = this.activeStreamChannel || 'None';
+                    document.getElementById('debugChannels').textContent = Array.from(this.detectedChannels).join(', ') || 'None';
+                    document.getElementById('debugFrameTypes').textContent = Array.from(this.frameTypesSeeen).map(t => 
+                        t === 0 ? 'I-Frame' : t === 1 ? 'P-Frame' : t === 2 ? 'B-Frame' : 'Audio'
+                    ).join(', ') || 'None';
+                    document.getElementById('debugStreamStatus').textContent = this.isVideoActive ? 'Active' : 'Stopped';
+                    document.getElementById('debugVideoDecoder').textContent = this.isVideoDecoderReady ? 'Ready' : 'Not Ready';
+                    
+                    // Enhanced audio context debug info
+                    let audioStatus = 'Not Ready';
+                    if (this.audioContext) {
+                        if (this.audioContext.state === 'suspended') {
+                            audioStatus = 'Suspended (click to enable)';
+                        } else if (this.isAudioReady) {
+                            audioStatus = `Ready (Queue: ${this.audioScheduler.bufferQueue.length}, Playing: ${this.audioScheduler.isPlaying})`;
+                        } else {
+                            audioStatus = 'Context Ready, Scheduler Stopped';
+                        }
+                    }
+                    document.getElementById('debugAudioContext').textContent = audioStatus;
+                }
+            }
+            
+            // === VIDEO SYSTEM ===
+            setupVideo() {
+                this.videoCanvas = document.getElementById('videoCanvas');
+                this.videoContext = this.videoCanvas.getContext('2d');
+                
+                // Draw initial state
+                this.drawNoVideoState();
+            }
+            
+            drawNoVideoState() {
+                this.videoContext.fillStyle = '#000000';
+                this.videoContext.fillRect(0, 0, this.videoCanvas.width, this.videoCanvas.height);
+                
+                this.videoContext.fillStyle = '#666666';
+                this.videoContext.font = '24px Arial';
+                this.videoContext.textAlign = 'center';
+                this.videoContext.fillText('📺 No Video Stream', 
+                    this.videoCanvas.width / 2, this.videoCanvas.height / 2 - 30);
+                this.videoContext.font = '16px Arial';
+                this.videoContext.fillText(`Selected: Channel ${this.selectedChannel}`, 
+                    this.videoCanvas.width / 2, this.videoCanvas.height / 2);
+                this.videoContext.fillText(`Active: ${this.activeStreamChannel ? 'Channel ' + this.activeStreamChannel : 'None'}`, 
+                    this.videoCanvas.width / 2, this.videoCanvas.height / 2 + 30);
+            }
+            
+            connectVideoWebSocket() {
+                this.updateVideoStatus('Connecting to video stream...', '#ff9800');
+                this.debugLog('Attempting WebSocket connection to ws://localhost:8081/video');
+                
+                // Video WebSocket connection (receives video frames only)
+                this.videoWs = new WebSocket('ws://localhost:8081/video');
+                this.videoWs.binaryType = 'arraybuffer';
+                
+                this.videoWs.onopen = () => {
+                    this.debugLog('Video WebSocket connected successfully');
+                    this.checkConnectionStatus();
+                };
+                
+                this.videoWs.onmessage = (event) => {
+                    this.handleStreamFrame(event.data, 'video');
+                };
+                
+                this.videoWs.onclose = () => {
+                    this.updateVideoStatus('Video connection closed', '#f44336');
+                    document.getElementById('videoConnectionStatus').textContent = 'Disconnected';
+                    document.getElementById('videoOverlay').style.display = 'block';
+                    document.getElementById('debugWsStatus').textContent = 'Disconnected';
+                    this.debugLog('Video WebSocket disconnected');
+                };
+                
+                // Audio WebSocket connection (receives audio frames only)
+                this.debugLog('Attempting WebSocket connection to ws://localhost:8081/ws for audio');
+                this.audioWs = new WebSocket('ws://localhost:8081/ws');
+                this.audioWs.binaryType = 'arraybuffer';
+                
+                this.audioWs.onopen = () => {
+                    this.debugLog('Audio WebSocket connected successfully');
+                    this.checkConnectionStatus();
+                };
+                
+                this.audioWs.onmessage = (event) => {
+                    this.debugLog(`[AUDIO-WS] Received audio data: ${event.data.byteLength} bytes`);
+                    this.handleAudioWebSocketData(event.data);
+                };
+                
+                this.audioWs.onclose = () => {
+                    this.debugLog('Audio WebSocket disconnected');
+                    this.checkConnectionStatus();
+                };
+                
+                this.audioWs.onerror = () => {
+                    this.debugLog('Audio WebSocket connection error');
+                    this.checkConnectionStatus();
+                };
+                
+                this.videoWs.onerror = () => {
+                    this.updateVideoStatus('Video connection error', '#f44336');
+                    document.getElementById('videoConnectionStatus').textContent = 'Error';
+                    document.getElementById('debugWsStatus').textContent = 'Error';
+                    this.debugLog('WebSocket connection error');
+                };
+            }
+            
+            checkConnectionStatus() {
+                const videoConnected = this.videoWs && this.videoWs.readyState === WebSocket.OPEN;
+                const audioConnected = this.audioWs && this.audioWs.readyState === WebSocket.OPEN;
+                
+                if (videoConnected && audioConnected) {
+                    this.updateVideoStatus('Video + Audio streams connected - decoding H.264 + G.711A', '#4CAF50');
+                    document.getElementById('videoConnectionStatus').textContent = 'Connected (Video + Audio)';
+                    document.getElementById('videoOverlay').style.display = 'none';
+                    document.getElementById('debugWsStatus').textContent = 'Connected (V+A)';
+                } else if (videoConnected) {
+                    this.updateVideoStatus('Video stream connected - waiting for audio...', '#ff9800');
+                    document.getElementById('videoConnectionStatus').textContent = 'Connected (Video Only)';
+                    document.getElementById('debugWsStatus').textContent = 'Connected (V)';
+                } else if (audioConnected) {
+                    this.updateVideoStatus('Audio stream connected - waiting for video...', '#ff9800');
+                    document.getElementById('videoConnectionStatus').textContent = 'Connected (Audio Only)';
+                    document.getElementById('debugWsStatus').textContent = 'Connected (A)';
+                } else {
+                    this.updateVideoStatus('Streams disconnected', '#f44336');
+                    document.getElementById('videoConnectionStatus').textContent = 'Disconnected';
+                    document.getElementById('videoOverlay').style.display = 'block';
+                    document.getElementById('debugWsStatus').textContent = 'Disconnected';
+                }
+            }
+            
+            handleStreamFrame(arrayBuffer, source = 'unknown') {
+                if (!arrayBuffer || arrayBuffer.byteLength < 8) {
+                    this.debugLog(`Received invalid frame: ${arrayBuffer ? arrayBuffer.byteLength : 0} bytes`);
+                    return;
+                }
+                
+                const view = new DataView(arrayBuffer);
+                const channel = view.getUint8(0);
+                const frameType = view.getUint8(1);
+                const seqNum = view.getUint16(2, false); // Big endian
+                const dataLength = view.getUint32(4, false); // Big endian
+                
+                // Log frame details for debugging
+                this.detectedChannels.add(channel);
+                this.frameTypesSeeen.add(frameType);
+                
+                const frameTypeName = frameType === 0 ? 'I-Frame' : frameType === 1 ? 'P-Frame' : frameType === 2 ? 'B-Frame' : 'Audio';
+                
+                // Only display frames from the active streaming channel
+                if (this.activeStreamChannel && channel !== this.activeStreamChannel) {
+                    this.debugLog(`Ignoring frame from inactive channel ${channel} (active: ${this.activeStreamChannel})`);
+                    return;
+                }
+                
+                this.debugLog(`[${source.toUpperCase()}] Frame received: Ch:${channel}, Type:${frameTypeName}, SN:${seqNum}, Size:${dataLength}`);
+                
+                // Extract payload data
+                const payloadData = new Uint8Array(arrayBuffer, 8, dataLength);
+                
+                // Update metrics
+                this.metrics.dataReceived += dataLength;
+                this.updateFrameRate();
+                
+                // Process based on frame type
+                this.frameTypesSeeen.add(frameType);
+                
+                if (frameType <= 2) {
+                    // Video frame (I, P, B-frame)
+                    this.debugLog(`Processing video frame: Type=${frameType}, Size=${payloadData.length}B`);
+                    this.handleVideoFrame(payloadData, frameType, seqNum, channel);
+                } else if (frameType === 3) {
+                    // Audio frame
+                    this.debugLog(`Processing audio frame: Type=${frameType}, Size=${payloadData.length}B`);
+                    this.handleAudioFrame(payloadData, seqNum, channel);
+                } else {
+                    // Unknown frame type
+                    this.debugLog(`Unknown frame type: ${frameType}, Size=${payloadData.length}B - skipping`);
+                }
+                
+                // Update debug info
+                this.updateDebugInfo();
+            }
+            
+            handleVideoFrame(h264Data, frameType, seqNum, channel) {
+                // --- Deep H.264 frame debug logging ---
+                // Print first 32 bytes of frame in hex
+                const hex = Array.from(h264Data.slice(0, 32)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+                this.debugLog(`H264 Frame [SN:${seqNum}][Type:${frameType === 0 ? 'I' : frameType === 1 ? 'P' : 'B'}][Len:${h264Data.length}] First 32 bytes: ${hex}`);
+
+                // Extract SPS/PPS from incoming frames with improved detection
+                const extractionResult = this.extractParameterSets(h264Data);
+                const hasNewSps = extractionResult.foundSPS && !this.sps;
+                const hasNewPps = extractionResult.foundPPS && !this.pps;
+
+                if (hasNewSps || hasNewPps) {
+                    this.debugLog(`Parameter sets extracted - SPS: ${hasNewSps ? 'NEW' : 'existing'}, PPS: ${hasNewPps ? 'NEW' : 'existing'}`);
+                }
+
+                // Log NAL units for debugging
+                if (extractionResult.nalTypes.length > 0) {
+                    this.debugLog(`NAL units in frame: ${extractionResult.nalTypes.map(t => `0x${t.toString(16)} (${this.nalTypeName(t)})`).join(', ')}`);
+                    if (frameType === 1 && extractionResult.nalTypes.length === 1) {
+                        this.debugLog('WARNING: P-frame contains only a single NAL unit. This may indicate missing reference or SEI/AUD NALs.');
+                    }
+                } else {
+                    this.debugLog('No NAL units found in frame!');
+                }
+
+                // Only initialize decoder after we have both SPS and PPS
+                if (this.waitingForSpsPs && this.sps && this.pps) {
+                    this.debugLog('SPS/PPS complete, initializing decoder');
+                    if (!this.initializeVideoDecoder()) {
+                        this.debugLog('Failed to initialize decoder, buffering frame');
+                        this.bufferVideoFrame(h264Data, frameType, seqNum, channel);
+                        return;
+                    }
+                }
+
+                // Buffer frames if decoder not ready
+                if (!this.isVideoDecoderReady || !this.videoDecoder || this.videoDecoder.state !== 'configured') {
+                    this.debugLog('Buffering video frame until decoder is ready/configured');
+                    this.bufferVideoFrame(h264Data, frameType, seqNum, channel);
+                    return;
+                }
+
+                // Wait for I-frame after decoder initialization or flush
+                if (this.waitingForKeyFrame) {
+                    if (frameType !== 0) {
+                        this.debugLog('Waiting for I-frame after configure/flush, skipping non-key frame');
+                        return;
+                    }
+                    this.waitingForKeyFrame = false;
+                    this.debugLog('First I-frame received, starting decode process');
+                }
+
+                // Handle decoder queue pressure
+                if (this.decoderQueueSize >= this.maxQueueSize) {
+                    this.debugLog(`Decoder queue full (${this.decoderQueueSize}/${this.maxQueueSize}), dropping frame`);
+                    
+                    // If queue has been full for too long, reset decoder
+                    if (!this.queueFullTime) {
+                        this.queueFullTime = performance.now();
+                    } else if (performance.now() - this.queueFullTime > 5000) { // 5 seconds
+                        this.debugLog('Decoder queue has been full for 5 seconds, triggering reset');
+                        this.resetVideoDecoder();
+                        this.queueFullTime = null;
+                        return;
+                    }
+                    return;
+                } else {
+                    this.queueFullTime = null; // Reset timer when queue is not full
+                }
+
+                // Prepare frame data for decoding
+                const frameData = this.prepareFrameForDecoding(h264Data, frameType, extractionResult);
+                
+                this.metrics.videoFrames++;
+                this.metrics.lastFrameType = frameType === 0 ? 'I-Frame' : frameType === 1 ? 'P-Frame' : 'B-Frame';
+                
+                try {
+                    // Create EncodedVideoChunk for WebCodecs
+                    const chunk = new EncodedVideoChunk({
+                        type: frameType === 0 ? 'key' : 'delta',
+                        timestamp: this.frameCounter * 40000, // 25fps (40ms per frame)
+                        duration: 40000,
+                        data: frameData
+                    });
+
+                    if (this.videoDecoder && this.videoDecoder.state === 'configured') {
+                        this.debugLog('Sending frame to decoder...');
+                        this.videoDecoder.decode(chunk);
+                        this.decoderQueueSize++;
+                        this.debugLog(`Decoded H.264 frame: ${this.metrics.lastFrameType}, SN:${seqNum}, Size:${frameData.length}B, Queue:${this.decoderQueueSize}`);
+                    } else {
+                        this.debugLog('Skipped decode: decoder not configured');
+                        this.bufferVideoFrame(h264Data, frameType, seqNum, channel);
+                    }
+                } catch (error) {
+                    console.error('Error decoding video frame:', error);
+                    this.debugLog('Video decode error: ' + error.message);
+                    this.handleError('Video decode error: ' + error.message);
+                }
+            }
+
+            extractParameterSets(h264Data) {
+                let foundSPS = false, foundPPS = false;
+                const nalTypes = [];
+                let i = 0;
+                
+                while (i < h264Data.length - 4) {
+                    let start = -1;
+                    if (h264Data[i] === 0x00 && h264Data[i+1] === 0x00 && h264Data[i+2] === 0x00 && h264Data[i+3] === 0x01) {
+                        start = i + 4;
+                        i += 4;
+                    } else if (h264Data[i] === 0x00 && h264Data[i+1] === 0x00 && h264Data[i+2] === 0x01) {
+                        start = i + 3;
+                        i += 3;
+                    } else {
+                        i++;
+                        continue;
+                    }
+                    
+                    let end = i;
+                    while (end < h264Data.length - 4) {
+                        if ((h264Data[end] === 0x00 && h264Data[end+1] === 0x00 && h264Data[end+2] === 0x00 && h264Data[end+3] === 0x01) ||
+                            (h264Data[end] === 0x00 && h264Data[end+1] === 0x00 && h264Data[end+2] === 0x01)) {
+                            break;
+                        }
+                        end++;
+                    }
+                    
+                    const nal = h264Data.slice(start, end);
+                    if (nal.length > 0) {
+                        const nalType = nal[0] & 0x1F;
+                        nalTypes.push(nalType);
+                        
+                        if (!this.sps && nalType === 7) {
+                            this.sps = h264Data.slice(start-4, end); // include start code
+                            foundSPS = true;
+                            this.debugLog(`SPS found: ${Array.from(this.sps.slice(0,16)).map(b=>b.toString(16).padStart(2,'0')).join(' ')}...`);
+                        }
+                        if (!this.pps && nalType === 8) {
+                            this.pps = h264Data.slice(start-4, end);
+                            foundPPS = true;
+                            this.debugLog(`PPS found: ${Array.from(this.pps.slice(0,16)).map(b=>b.toString(16).padStart(2,'0')).join(' ')}...`);
+                        }
+                    }
+                    i = end;
+                }
+                
+                return { foundSPS, foundPPS, nalTypes };
+            }
+
+            prepareFrameForDecoding(h264Data, frameType, extractionResult) {
+                // Use a strictly increasing frame counter for timestamp
+                if (!this.frameCounter) this.frameCounter = 0;
+                this.frameCounter++;
+
+                let sendData = h264Data;
+                
+                // Check if this frame contains an IDR NAL (0x5) and if it already has SPS/PPS
+                const hasIDR = extractionResult.nalTypes.includes(5);
+                const hasSPSInFrame = extractionResult.nalTypes.includes(7);
+                const hasPPSInFrame = extractionResult.nalTypes.includes(8);
+                
+                // Only prepend SPS/PPS if this is an IDR frame but missing SPS/PPS
+                if (hasIDR && this.sps && this.pps && (!hasSPSInFrame || !hasPPSInFrame)) {
+                    // Prepend SPS and PPS to the frame
+                    const totalLen = this.sps.length + this.pps.length + h264Data.length;
+                    let temp = new Uint8Array(totalLen);
+                    temp.set(this.sps, 0);
+                    temp.set(this.pps, this.sps.length);
+                    temp.set(h264Data, this.sps.length + this.pps.length);
+                    sendData = temp;
+                    this.debugLog('Prepended SPS/PPS to I-frame before decode');
+                } else if (hasIDR && hasSPSInFrame && hasPPSInFrame) {
+                    this.debugLog('I-frame already contains SPS/PPS, using as-is');
+                }
+
+                // Prepend AUD (Access Unit Delimiter) to every frame
+                const aud = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x09, 0x10]);
+                let withAud = new Uint8Array(aud.length + sendData.length);
+                withAud.set(aud, 0);
+                withAud.set(sendData, aud.length);
+                
+                return withAud;
+            }
+
+            bufferVideoFrame(h264Data, frameType, seqNum, channel) {
+                // Limit buffer size to prevent memory issues
+                const maxBufferSize = 50;
+                if (this.videoFrameBuffer.length >= maxBufferSize) {
+                    // Remove oldest frames to make room
+                    const removed = this.videoFrameBuffer.splice(0, this.videoFrameBuffer.length - maxBufferSize + 1);
+                    this.debugLog(`Buffer full, removed ${removed.length} oldest frames`);
+                }
+                
+                this.videoFrameBuffer.push({h264Data, frameType, seqNum, channel});
+                this.debugLog(`Buffered frame (${this.videoFrameBuffer.length} total in buffer)`);
+            }
+
+            // Helper for NAL type name
+            nalTypeName(type) {
+                const types = {
+                    1: 'Coded slice (P)',
+                    2: 'Coded slice (B)',
+                    5: 'Coded slice (IDR/I)',
+                    6: 'SEI',
+                    7: 'SPS',
+                    8: 'PPS',
+                    9: 'Access Unit Delimiter'
+                };
+                return types[type] || `Unknown (${type})`;
+            }
+            handleAudioFrame(audioData, seqNum, channel) {
+                this.debugLog(`Received audio frame: SN:${seqNum}, Size:${audioData.length}B, Channel:${channel}`);
+                
+                // Always increment metrics for received frames
+                this.metrics.audioFrames++;
+                
+                try {
+                    // Process G.711A audio through the enhanced scheduler
+                    this.processAudioFrame(audioData);
+                    this.debugLog(`Processed G.711A audio: SN:${seqNum}, Size:${audioData.length}B`);
+                } catch (error) {
+                    console.error('Error processing audio frame:', error);
+                    this.debugLog('Audio process error: ' + error.message);
+                }
+            }
+
+            handleAudioWebSocketData(arrayBuffer) {
+                if (!arrayBuffer || arrayBuffer.byteLength < 4) {
+                    this.debugLog(`[AUDIO-WS] Invalid audio data: ${arrayBuffer ? arrayBuffer.byteLength : 0} bytes`);
+                    return;
+                }
+
+                // Parse custom audio format: [4 bytes duration] + [G.711A data]
+                const view = new DataView(arrayBuffer);
+                const durationFloat = view.getFloat32(0, true); // Little endian
+                const g711aData = new Uint8Array(arrayBuffer, 4);
+
+                this.debugLog(`[AUDIO-WS] Audio data: Duration=${durationFloat.toFixed(3)}s, G711ASize=${g711aData.length}B`);
+
+                // Always increment metrics for received audio data
+                this.metrics.audioFrames++;
+
+                try {
+                    // Process the G.711A audio data (will be decoded to PCM in processAudioFrame)
+                    this.processAudioFrame(g711aData);
+                    this.debugLog(`[AUDIO-WS] Processed audio: Duration=${durationFloat.toFixed(3)}s, G711ASize=${g711aData.length}B`);
+                } catch (error) {
+                    console.error('Error processing audio WebSocket data:', error);
+                    this.debugLog('[AUDIO-WS] Audio process error: ' + error.message);
+                }
+            }
+
+            updateFrameRate() {
+                const now = performance.now();
+                if (this.metrics.lastFrameTime > 0) {
+                    const timeDiff = now - this.metrics.lastFrameTime;
+                    this.metrics.frameRate = Math.round(1000 / timeDiff * 10) / 10;
+                }
+                this.metrics.lastFrameTime = now;
+            }
+
+            // === CHANNEL MANAGEMENT ===
+            async stopAllChannels() {
+                if (!this.selectedDevice) {
+                    this.showApiStatus('No device selected', 'error');
+                    return;
+                }
+                try {
+                    document.getElementById('stopAllChannelsButton').disabled = true;
+                    this.updateVideoStatus('Stopping all channels...', '#ff9800');
+                    this.debugLog('Stopping all channels for device');
+                    // Stop all possible channels (1-4)
+                    const stopPromises = [];
+                    for (let channel = 1; channel <= 4; channel++) {
+                        const stopRequest = this.apiRequest('/video/control', 'POST', {
+                            channel: channel,
+                            command: 0, // 0 = stop video
+                            device_phone: this.selectedDevice.phone_number
+                        }).catch(error => {
+                            this.debugLog(`Failed to stop channel ${channel}: ${error.message}`);
+                        });
+                        stopPromises.push(stopRequest);
+                    }
+                    await Promise.allSettled(stopPromises);
+                    // Reset state
+                    this.isVideoActive = false;
+                    this.activeStreamChannel = null;
+                    // Flush video decoder and reset SPS/PPS/buffer
+                    if (this.videoDecoder) {
+                        try {
+                            this.videoDecoder.flush();
+                            this.videoDecoder.close();
+                        } catch (error) {
+                            console.error('Error flushing/closing video decoder:', error);
+                        }
+                        this.videoDecoder = null;
+                    }
+                    this.isVideoDecoderReady = false;
+                    this.sps = null;
+                    this.pps = null;
+                    this.videoFrameBuffer = [];
+                    // Update UI
+                    document.getElementById('startVideoButton').disabled = false;
+                    document.getElementById('stopVideoButton').disabled = true;
+                    document.getElementById('currentChannel').textContent = 'None';
+                    this.updateVideoStatus('All channels stopped', '#666');
+                    this.showApiStatus('All channels stopped successfully', 'success');
+                    this.debugLog('All channels stopped successfully');
+                    document.getElementById('debugLastApiCall').textContent = 'STOP ALL channels';
+                    this.updateDebugInfo();
+                } catch (error) {
+                    this.debugLog(`Error stopping all channels: ${error.message}`);
+                } finally {
+                    document.getElementById('stopAllChannelsButton').disabled = false;
+                }
+            }
+
+            async startVideo() {
+                if (!this.selectedDevice) {
+                    this.showApiStatus('Please select a device first', 'error');
+                    return;
+                }
+                // Resume audio context if needed (browser autoplay policy)
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    try {
+                        await this.audioContext.resume();
+                        this.debugLog('Audio context resumed');
+                    } catch (error) {
+                        this.debugLog('Failed to resume audio context: ' + error.message);
+                    }
+                }
+                try {
+                    document.getElementById('startVideoButton').disabled = true;
+                    this.updateVideoStatus('Starting video stream...', '#ff9800');
+                    this.debugLog(`Starting video on channel ${this.selectedChannel} for device ${this.selectedDevice.phone_number}`);
+                    // First, stop all channels to ensure clean state
+                    await this.stopAllChannels();
+                    // Wait a moment for the stop commands to process
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Start video stream on selected channel
+                    const videoData = await this.apiRequest('/video/start', 'POST', {
+                        channel: this.selectedChannel,
+                        device_phone: this.selectedDevice.phone_number,
+                        stream_type: 1 // Sub-stream for live video
+                    });
+                    this.isVideoActive = true;
+                    this.activeStreamChannel = this.selectedChannel;
+                    // Update UI
+                    document.getElementById('currentChannel').textContent = this.selectedChannel;
+                    document.getElementById('stopVideoButton').disabled = false;
+                    document.getElementById('stopAllChannelsButton').disabled = false;
+                    // Connect WebSocket if not already connected
+                    const videoConnected = this.videoWs && this.videoWs.readyState === WebSocket.OPEN;
+                    const audioConnected = this.audioWs && this.audioWs.readyState === WebSocket.OPEN;
+                    
+                    if (!videoConnected || !audioConnected) {
+                        this.connectVideoWebSocket();
+                    }
+                    this.showApiStatus(`Video started on channel ${this.selectedChannel}`, 'success');
+                    this.debugLog(`Video API call successful for channel ${this.selectedChannel}`);
+                    // Update debug info
+                    document.getElementById('debugLastApiCall').textContent = `START channel ${this.selectedChannel}`;
+                    this.updateDebugInfo();
+                } catch (error) {
+                    document.getElementById('startVideoButton').disabled = false;
+                    this.isVideoActive = false;
+                    this.activeStreamChannel = null;
+                    this.updateVideoStatus(`Failed to start video: ${error.message}`, '#f44336');
+                    this.showApiStatus(`Failed to start video: ${error.message}`, 'error');
+                    this.debugLog(`Video start failed: ${error.message}`);
+                }
+            }
+
+            async stopVideo() {
+                if (!this.selectedDevice || !this.activeStreamChannel) return;
+                try {
+                    document.getElementById('stopVideoButton').disabled = true;
+                    this.updateVideoStatus('Stopping video stream...', '#ff9800');
+                    this.debugLog(`Stopping video stream on channel ${this.activeStreamChannel}`);
+                    // Stop the active channel
+                    await this.apiRequest('/video/control', 'POST', {
+                        channel: this.activeStreamChannel,
+                        command: 0, // 0 = stop video
+                        device_phone: this.selectedDevice.phone_number
+                    });
+                    // Flush decoder and clear buffer
+                    if (this.videoDecoder) {
+                        try {
+                            this.videoDecoder.flush();
+                        } catch (error) {
+                            console.error('Error flushing decoder:', error);
+                        }
+                    }
+                    this.videoFrameBuffer = [];
+                    
+                    // Close WebSocket connections
+                    if (this.videoWs && this.videoWs.readyState === WebSocket.OPEN) {
+                        this.debugLog('Closing video WebSocket connection');
+                        this.videoWs.close();
+                    }
+                    if (this.audioWs && this.audioWs.readyState === WebSocket.OPEN) {
+                        this.debugLog('Closing audio WebSocket connection');
+                        this.audioWs.close();
+                    }
+                    
+                    // Reset state
+                    this.isVideoActive = false;
+                    this.activeStreamChannel = null;
+                    // Update UI
+                    document.getElementById('startVideoButton').disabled = false;
+                    document.getElementById('currentChannel').textContent = 'None';
+                    document.getElementById('stopAllChannelsButton').disabled = true;
+                    this.updateVideoStatus('Video stream stopped', '#666');
+                    this.drawNoVideoState();
+                    this.showApiStatus('Video stopped successfully', 'success');
+                    this.debugLog('Video stopped successfully');
+                    // Update debug info
+                    document.getElementById('debugLastApiCall').textContent = `STOP channel ${this.selectedChannel}`;
+                    this.updateDebugInfo();
+                } catch (error) {
+                    document.getElementById('stopVideoButton').disabled = false;
+                    this.updateVideoStatus(`Failed to stop video: ${error.message}`, '#f44336');
+                    this.showApiStatus(`Failed to stop video: ${error.message}`, 'error');
+                    this.debugLog(`Video stop failed: ${error.message}`);
+                }
+            }
+
+            // === API INTEGRATION ===
+            async apiRequest(endpoint, method = 'GET', data = null) {
+                try {
+                    const options = {
+                        method: method,
+                        headers: {
+                            'accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                    if (data) {
+                        options.body = JSON.stringify(data);
+                    }
+                    const response = await fetch(`${this.apiBaseUrl}${endpoint}`, options);
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Request failed:', error);
+                    this.showApiStatus(`API Error: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+
+            async loadDevices() {
+                try {
+                    this.updateDeviceStatus('Loading devices...', '#ff9800');
+                    document.getElementById('refreshDevicesButton').disabled = true;
+                    this.debugLog('Loading devices from API...');
+                    const devices = await this.apiRequest('/devices');
+                    this.devices = devices;
+                    this.renderDeviceList();
+                    this.updateDeviceStatus(`Found ${devices.length} device(s)`, '#4CAF50');
+                    this.showApiStatus(`Loaded ${devices.length} device(s) successfully`, 'success');
+                    this.debugLog(`Loaded ${devices.length} devices successfully`);
+                } catch (error) {
+                    this.updateDeviceStatus('Failed to load devices', '#f44336');
+                    this.showApiStatus(`Failed to load devices: ${error.message}`, 'error');
+                    this.debugLog(`Failed to load devices: ${error.message}`);
+                } finally {
+                    document.getElementById('refreshDevicesButton').disabled = false;
+                }
+            }
+
+            // === UI MANAGEMENT ===
+            renderDeviceList() {
+                const deviceList = document.getElementById('deviceList');
+                deviceList.innerHTML = '';
+                if (this.devices.length === 0) {
+                    deviceList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No devices found</div>';
+                    return;
+                }
+                this.devices.forEach(device => {
+                    const deviceItem = document.createElement('div');
+                    deviceItem.className = 'device-item';
+                    if (this.selectedDevice && this.selectedDevice.phone_number === device.phone_number) {
+                        deviceItem.classList.add('selected');
+                    }
+                    const lastSeen = new Date(device.last_seen).toLocaleString();
+                    const statusClass = device.authenticated ? 'status-online' : 'status-offline';
+                    const statusText = device.authenticated ? 'ONLINE' : 'OFFLINE';
+                    deviceItem.innerHTML = `
+                        <div class="device-info">
+                            <div class="device-phone">${device.phone_number}</div>
+                            <div class="device-details">
+                                Last seen: ${lastSeen}<br>
+                                Remote: ${device.remote_addr}
+                            </div>
+                        </div>
+                        <div class="device-status ${statusClass}">
+                            ${statusText}
+                        </div>
+                    `;
+                    deviceItem.addEventListener('click', () => this.selectDevice(device));
+                    deviceList.appendChild(deviceItem);
+                });
+            }
+
+            selectDevice(device) {
+                this.selectedDevice = device;
+                document.getElementById('selectedDevice').textContent = device.phone_number;
+                document.getElementById('deviceConnectionStatus').textContent = device.authenticated ? 'Online' : 'Offline';
+                // Enable start button only if codecs are ready
+                if (this.isVideoDecoderReady && this.isAudioReady) {
+                    document.getElementById('startVideoButton').disabled = false;
+                }
+                this.renderDeviceList();
+                this.showApiStatus(`Selected device: ${device.phone_number}`, 'success');
+                this.debugLog(`Selected device: ${device.phone_number}`);
+            }
+
+            async selectChannel(channel) {
+                const previousChannel = this.selectedChannel;
+                // If video is currently active, stop it first
+                if (this.isVideoActive) {
+                    this.debugLog(`Changing channel from ${previousChannel} to ${channel} - stopping current stream`);
+                    await this.stopAllChannels();
+                    // Wait a moment for stop to complete
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                this.selectedChannel = channel;
+                // Update UI
+                document.querySelectorAll('.channel-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (parseInt(btn.dataset.channel) === channel) {
+                        btn.classList.add('active');
+                    }
+                });
+                // Update canvas display
+                this.drawNoVideoState();
+                this.showApiStatus(`Selected channel: ${channel}${previousChannel !== channel ? ' (previous streams stopped)' : ''}`, 'success');
+                this.debugLog(`Selected channel: ${channel}`);
+                this.updateDebugInfo();
+            }
+
+            updateDeviceStatus(message, color = '#333') {
+                const status = document.getElementById('deviceStatus');
+                status.textContent = message;
+                status.style.borderLeftColor = color;
+            }
+
+            updateVideoStatus(message, color = '#333') {
+                const status = document.getElementById('videoStatus');
+                status.textContent = message;
+                status.style.borderLeftColor = color;
+            }
+
+            showApiStatus(message, type) {
+                const statusDiv = document.getElementById('apiStatus');
+                statusDiv.textContent = message;
+                statusDiv.className = `api-status api-${type}`;
+                statusDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
+            }
+
+            handleError(message) {
+                console.error(message);
+                this.debugLog('ERROR: ' + message);
+                this.showApiStatus('Error: ' + message, 'error');
+            }
+
+            setupEventListeners() {
+                // Device management controls
+                document.getElementById('refreshDevicesButton').addEventListener('click', () => this.loadDevices());
+                // Video controls
+                document.getElementById('startVideoButton').addEventListener('click', () => this.startVideo());
+                document.getElementById('stopVideoButton').addEventListener('click', () => this.stopVideo());
+                document.getElementById('stopAllChannelsButton').addEventListener('click', () => this.stopAllChannels());
+                // Debug controls
+                document.getElementById('debugToggleButton').addEventListener('click', () => this.toggleDebug());
+                // Channel selector
+                document.querySelectorAll('.channel-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const channel = parseInt(btn.dataset.channel);
+                        await this.selectChannel(channel);
+                    });
+                });
+            }
+
+            startMetricsUpdater() {
+                setInterval(() => {
+                    document.getElementById('videoFrames').textContent = this.metrics.videoFrames;
+                    document.getElementById('decodedFrames').textContent = this.metrics.decodedFrames;
+                    document.getElementById('audioFrames').textContent = this.metrics.audioFrames;
+                    document.getElementById('frameRate').textContent = this.metrics.frameRate + ' fps';
+                    document.getElementById('dataReceived').textContent = Math.round(this.metrics.dataReceived / 1024) + ' KB';
+                    document.getElementById('lastFrameType').textContent = this.metrics.lastFrameType;
+                    
+                    // Update debug info with decoder queue status
+                    if (this.debugMode) {
+                        const debugDecoderElement = document.getElementById('debugVideoDecoder');
+                        if (debugDecoderElement) {
+                            let status = 'Not Ready';
+                            if (this.isVideoDecoderReady && this.videoDecoder) {
+                                status = `Ready (Queue: ${this.decoderQueueSize}/${this.maxQueueSize}, Buffer: ${this.videoFrameBuffer.length})`;
+                            } else if (this.waitingForSpsPs) {
+                                status = 'Waiting for SPS/PPS';
+                            }
+                            debugDecoderElement.textContent = status;
+                        }
+                        
+                        // Update audio debug info
+                        this.updateDebugInfo();
+                    }
+                    
+                    // Periodically try to process buffered frames if decoder is ready
+                    if (this.isVideoDecoderReady && this.videoFrameBuffer.length > 0 && this.decoderQueueSize < this.maxQueueSize) {
+                        this.processBufferedFrames();
+                    }
+                    
+                    // Show audio enable button if needed
+                    const enableAudioButton = document.getElementById('enableAudioButton');
+                    if (this.audioContext && this.audioContext.state === 'suspended' && this.audioScheduler.bufferQueue.length > 0) {
+                        enableAudioButton.style.display = 'inline-block';
+                        enableAudioButton.textContent = `🔊 Enable Audio (${this.audioScheduler.bufferQueue.length} queued)`;
+                    }
+                }, 500);
+            }
+        }
+
+// Initialize the video system when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new JT1078WebCodecsPlayer();
+});
+</script>
+</body>
+</html>

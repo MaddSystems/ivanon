@@ -32,9 +32,9 @@ Every JT1078 frame follows this fundamental structure:
 ```
 Offset | Size | Field Name        | Description                    | Example Value
 -------|------|-------------------|--------------------------------|---------------
-0x00   | 4    | Header Signature  | Fixed: 30 31 63 64           | 0x30316364
-0x04   | 1    | V+P+X+CC         | Version + Padding + Ext + CC   | 0x80
-0x05   | 1    | M+PT             | Marker + Payload Type          | 0x60
+0x00   | 4    | Header Signature  | Fixed: 30 31 63 64             | 0x30316364
+0x04   | 1    | V+P+X+CC          | Version + Padding + Ext + CC   | 0x80
+0x05   | 1    | M+PT              | Marker + Payload Type          | 0x60
 0x06   | 2    | Sequence Number   | Incremental packet sequence    | 0x0001-0xFFFF
 0x08   | 6    | SIM Card Number   | Device SIM identifier (BCD)    | Variable
 0x0E   | 1    | Logic Channel     | Camera channel number          | 0x01
@@ -159,9 +159,9 @@ When present, timestamp follows this format:
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│                    64-bit Timestamp (Big-endian)              │
-│                        Units: Milliseconds                    │
-│                    Base: Unix epoch or device boot            │
+│                    64-bit Timestamp (Big-endian)               │
+│                        Units: Milliseconds                     │
+│                    Base: Unix epoch or device boot             │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -285,12 +285,12 @@ Audio frames contain raw G.711A (A-law) encoded data:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Raw G.711A Audio Data                   │
+│                    Raw G.711A Audio Data                    │
 │                                                             │
-│   • Sample Rate: 8000 Hz                                   │
-│   • Encoding: A-law companding                             │
-│   • Frame Size: ~160-320 bytes typical                     │
-│   • No additional headers or structure                     │
+│   • Sample Rate: 8000 Hz                                    │
+│   • Encoding: A-law companding                              │
+│   • Frame Size: ~160-320 bytes typical                      │
+│   • No additional headers or structure                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
