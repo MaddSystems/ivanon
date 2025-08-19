@@ -14,17 +14,151 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/api/v1/jt808/devices": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "List JT808 devices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.JT808Device"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/snapshot": {
+            "get": {
+                "description": "Captures a single image from device camera with optimized settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Capture image snapshot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device Phone Number",
+                        "name": "device_phone",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Camera Channel (1-4)",
+                        "name": "channel",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Resolution code (default 1)",
+                        "name": "resolution",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Quality 0-10 (default 0)",
+                        "name": "quality",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Timeout in seconds (default 90)",
+                        "name": "timeout",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ImageSnapshotResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.ImageSnapshotResponse": {
+            "type": "object",
+            "properties": {
+                "capture_time": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "integer"
+                },
+                "chunks_received": {
+                    "type": "integer"
+                },
+                "device_phone": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "image_base64": {
+                    "type": "string"
+                },
+                "image_size": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.JT808Device": {
+            "type": "object",
+            "properties": {
+                "auth_code": {
+                    "type": "string"
+                },
+                "authenticated": {
+                    "type": "boolean"
+                },
+                "in_call": {
+                    "type": "boolean"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "remote_addr": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "ivan-proxy.armaddia.lat",
-	BasePath:         "/",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "JT808 Proxy API",
-	Description:      "API for managing JT808 devices and VoIP calls.",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

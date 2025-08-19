@@ -1,0 +1,635 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for managing JT808 devices and VoIP calls.",
+        "title": "JT808 Proxy API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "ivan-proxy.armaddia.lat",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/jt808/call/control": {
+            "post": {
+                "description": "Sends a control command to a VoIP call (0=off, 1=switch, 2=pause, 3=resume, 4=end)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Control a VoIP call",
+                "parameters": [
+                    {
+                        "description": "VoIP control request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.VoIPControlRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/call/start": {
+            "post": {
+                "description": "Initiates a VoIP call for a JT808 device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Start a VoIP call",
+                "parameters": [
+                    {
+                        "description": "VoIP call request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.VoIPCallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.VoIPCallResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/call/status/{phone}": {
+            "get": {
+                "description": "Returns the current call status for a device",
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Get call status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device Phone Number",
+                        "name": "phone",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.VoIPCallResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/calls": {
+            "get": {
+                "description": "Returns a list of all active VoIP calls",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "List all VoIP calls",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.VoIPCallResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/devices": {
+            "get": {
+                "description": "Returns a list of connected JT808 devices",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "List JT808 devices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.JT808Device"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/video/control": {
+            "post": {
+                "description": "Sends a control command to a video stream. Channel must be 1-4. Commands: 0=stop, 1=switch, 2=pause, 3=resume",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Control a video stream",
+                "parameters": [
+                    {
+                        "description": "Video control request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.VideoControlRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/video/sessions": {
+            "get": {
+                "description": "Returns a list of all active video sessions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "List all video sessions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.VideoStartResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jt808/video/start": {
+            "post": {
+                "description": "Initiates a video stream for a JT808 device. Channel must be 1-4. Stream type: 0=main stream (typically for storage), 1=sub-stream (used for live broadcast)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jt808"
+                ],
+                "summary": "Start a video stream",
+                "parameters": [
+                    {
+                        "description": "Video start request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.VideoStartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.VideoStartResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/sendcommand": {
+            "post": {
+                "description": "Sends a hex-encoded command to a tracker by IMEI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "trackers"
+                ],
+                "summary": "Send command to tracker",
+                "parameters": [
+                    {
+                        "description": "Command request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.SendCommandRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trackerlist": {
+            "get": {
+                "description": "Returns a list of connected trackers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "trackers"
+                ],
+                "summary": "List all trackers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.TrackerAssign"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.JT808Device": {
+            "type": "object",
+            "properties": {
+                "auth_code": {
+                    "type": "string"
+                },
+                "authenticated": {
+                    "type": "boolean"
+                },
+                "in_call": {
+                    "type": "boolean"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "remote_addr": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.SendCommandRequest": {
+            "type": "object",
+            "required": [
+                "data",
+                "imei"
+            ],
+            "properties": {
+                "data": {
+                    "description": "Hex encoded data",
+                    "type": "string"
+                },
+                "imei": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.TrackerAssign": {
+            "type": "object",
+            "properties": {
+                "imei": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "remoteaddr": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.VideoControlRequest": {
+            "type": "object",
+            "required": [
+                "channel",
+                "device_phone"
+            ],
+            "properties": {
+                "channel": {
+                    "type": "integer"
+                },
+                "command": {
+                    "description": "0=stop, 1=switch, 2=pause, 3=resume (0 is valid, so no required tag)",
+                    "type": "integer"
+                },
+                "device_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.VideoStartRequest": {
+            "type": "object",
+            "required": [
+                "channel",
+                "device_phone"
+            ],
+            "properties": {
+                "channel": {
+                    "type": "integer"
+                },
+                "device_phone": {
+                    "type": "string"
+                },
+                "stream_type": {
+                    "description": "0=main, 1=sub (0 is valid, so no required tag)",
+                    "type": "integer"
+                }
+            }
+        },
+        "main.VideoStartResponse": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "integer"
+                },
+                "device_phone": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "stream_type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "main.VoIPCallRequest": {
+            "type": "object",
+            "required": [
+                "caller_id",
+                "device_phone"
+            ],
+            "properties": {
+                "caller_id": {
+                    "type": "string"
+                },
+                "device_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.VoIPCallResponse": {
+            "type": "object",
+            "properties": {
+                "call_id": {
+                    "type": "string"
+                },
+                "caller_id": {
+                    "type": "string"
+                },
+                "device_phone": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.VoIPControlRequest": {
+            "type": "object",
+            "required": [
+                "command",
+                "device_phone"
+            ],
+            "properties": {
+                "command": {
+                    "description": "0=off, 1=switch, 2=pause, 3=resume, 4=end",
+                    "type": "integer"
+                },
+                "device_phone": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

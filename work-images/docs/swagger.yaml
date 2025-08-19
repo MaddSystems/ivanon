@@ -1,0 +1,92 @@
+definitions:
+  main.ImageSnapshotResponse:
+    properties:
+      capture_time:
+        type: string
+      channel:
+        type: integer
+      chunks_received:
+        type: integer
+      device_phone:
+        type: string
+      error:
+        type: string
+      image_base64:
+        type: string
+      image_size:
+        type: integer
+      status:
+        type: string
+    type: object
+  main.JT808Device:
+    properties:
+      auth_code:
+        type: string
+      authenticated:
+        type: boolean
+      in_call:
+        type: boolean
+      last_seen:
+        type: string
+      phone_number:
+        type: string
+      remote_addr:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/jt808/devices:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.JT808Device'
+            type: array
+      summary: List JT808 devices
+      tags:
+      - jt808
+  /api/v1/jt808/snapshot:
+    get:
+      consumes:
+      - application/json
+      description: Captures a single image from device camera with optimized settings
+        from log analysis
+      parameters:
+      - description: Device Phone Number
+        in: query
+        name: device_phone
+        required: true
+        type: string
+      - description: Camera Channel (1-4)
+        in: query
+        name: channel
+        required: true
+        type: integer
+      - description: Resolution code (default 1)
+        in: query
+        name: resolution
+        type: integer
+      - description: Quality 0-10 (default 0)
+        in: query
+        name: quality
+        type: integer
+      - description: Timeout in seconds (default 90)
+        in: query
+        name: timeout
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ImageSnapshotResponse'
+      summary: Capture image snapshot
+      tags:
+      - jt808
+swagger: "2.0"

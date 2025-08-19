@@ -1,0 +1,424 @@
+basePath: /
+definitions:
+  main.JT808Device:
+    properties:
+      auth_code:
+        type: string
+      authenticated:
+        type: boolean
+      in_call:
+        type: boolean
+      last_seen:
+        type: string
+      phone_number:
+        type: string
+      remote_addr:
+        type: string
+    type: object
+  main.SendCommandRequest:
+    properties:
+      data:
+        description: Hex encoded data
+        type: string
+      imei:
+        type: string
+    required:
+    - data
+    - imei
+    type: object
+  main.TrackerAssign:
+    properties:
+      imei:
+        type: string
+      protocol:
+        type: string
+      remoteaddr:
+        type: string
+    type: object
+  main.VideoControlRequest:
+    properties:
+      channel:
+        type: integer
+      command:
+        description: 0=stop, 1=switch, 2=pause, 3=resume (0 is valid, so no required
+          tag)
+        type: integer
+      device_phone:
+        type: string
+    required:
+    - channel
+    - device_phone
+    type: object
+  main.VideoStartRequest:
+    properties:
+      channel:
+        type: integer
+      device_phone:
+        type: string
+      stream_type:
+        description: 0=main, 1=sub (0 is valid, so no required tag)
+        type: integer
+    required:
+    - channel
+    - device_phone
+    type: object
+  main.VideoStartResponse:
+    properties:
+      channel:
+        type: integer
+      device_phone:
+        type: string
+      session_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      stream_type:
+        type: integer
+    type: object
+  main.VoIPCallRequest:
+    properties:
+      caller_id:
+        type: string
+      device_phone:
+        type: string
+    required:
+    - caller_id
+    - device_phone
+    type: object
+  main.VoIPCallResponse:
+    properties:
+      call_id:
+        type: string
+      caller_id:
+        type: string
+      device_phone:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
+  main.VoIPControlRequest:
+    properties:
+      command:
+        description: 0=off, 1=switch, 2=pause, 3=resume, 4=end
+        type: integer
+      device_phone:
+        type: string
+    required:
+    - command
+    - device_phone
+    type: object
+host: ivan-proxy.armaddia.lat
+info:
+  contact: {}
+  description: API for managing JT808 devices and VoIP calls.
+  title: JT808 Proxy API
+  version: "1.0"
+paths:
+  /api/v1/jt808/call/control:
+    post:
+      consumes:
+      - application/json
+      description: Sends a control command to a VoIP call (0=off, 1=switch, 2=pause,
+        3=resume, 4=end)
+      parameters:
+      - description: VoIP control request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.VoIPControlRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Control a VoIP call
+      tags:
+      - jt808
+  /api/v1/jt808/call/start:
+    post:
+      consumes:
+      - application/json
+      description: Initiates a VoIP call for a JT808 device
+      parameters:
+      - description: VoIP call request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.VoIPCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.VoIPCallResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start a VoIP call
+      tags:
+      - jt808
+  /api/v1/jt808/call/status/{phone}:
+    get:
+      description: Returns the current call status for a device
+      parameters:
+      - description: Device Phone Number
+        in: path
+        name: phone
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.VoIPCallResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get call status
+      tags:
+      - jt808
+  /api/v1/jt808/calls:
+    get:
+      description: Returns a list of all active VoIP calls
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.VoIPCallResponse'
+            type: array
+      summary: List all VoIP calls
+      tags:
+      - jt808
+  /api/v1/jt808/devices:
+    get:
+      description: Returns a list of connected JT808 devices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.JT808Device'
+            type: array
+      summary: List JT808 devices
+      tags:
+      - jt808
+  /api/v1/jt808/video/control:
+    post:
+      consumes:
+      - application/json
+      description: 'Sends a control command to a video stream. Channel must be 1-4.
+        Commands: 0=stop, 1=switch, 2=pause, 3=resume'
+      parameters:
+      - description: Video control request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.VideoControlRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Control a video stream
+      tags:
+      - jt808
+  /api/v1/jt808/video/sessions:
+    get:
+      description: Returns a list of all active video sessions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.VideoStartResponse'
+            type: array
+      summary: List all video sessions
+      tags:
+      - jt808
+  /api/v1/jt808/video/start:
+    post:
+      consumes:
+      - application/json
+      description: 'Initiates a video stream for a JT808 device. Channel must be 1-4.
+        Stream type: 0=main stream (typically for storage), 1=sub-stream (used for
+        live broadcast)'
+      parameters:
+      - description: Video start request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.VideoStartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.VideoStartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Start a video stream
+      tags:
+      - jt808
+  /api/v1/sendcommand:
+    post:
+      consumes:
+      - application/json
+      description: Sends a hex-encoded command to a tracker by IMEI
+      parameters:
+      - description: Command request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SendCommandRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send command to tracker
+      tags:
+      - trackers
+  /api/v1/trackerlist:
+    get:
+      description: Returns a list of connected trackers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.TrackerAssign'
+            type: array
+      summary: List all trackers
+      tags:
+      - trackers
+swagger: "2.0"

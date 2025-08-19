@@ -669,8 +669,7 @@
             
             connectReceiveWebSocket() {
                 this.updateReceiveStatus('Connecting to audio stream...', '#ff9800');
-                
-                this.receiveWs = new WebSocket('ws://localhost:8081/ws');
+                this.receiveWs = new WebSocket('wss://voip.armaddia.lat/ws');
                 this.receiveWs.binaryType = 'arraybuffer';
                 
                 this.receiveWs.onopen = () => {
@@ -893,7 +892,7 @@
             }
             
             connectTransmitWebSocket() {
-                this.transmitWs = new WebSocket('ws://localhost:8081/transmit');
+                this.transmitWs = new WebSocket('wss://voip.armaddia.lat/transmit');
                 
                 this.transmitWs.onopen = () => {
                     document.getElementById('tcpStatus').textContent = 'Connected';
